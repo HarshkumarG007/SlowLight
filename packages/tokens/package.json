@@ -1,0 +1,21 @@
+{
+  "name": "@slow-light/tokens",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/tokens.js",
+  "types": "dist/tokens.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/tokens.js",
+      "types": "./dist/tokens.d.ts"
+    },
+    "./css": "./dist/tokens.css"
+  },
+  "scripts": {
+    "build": "node build.js",
+    "dev": "node build.js",
+    "lint": "echo 'No lint for tokens'",
+    "typecheck": "echo 'No typecheck for tokens'"
+  }
+}

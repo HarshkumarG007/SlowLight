@@ -1,0 +1,67 @@
+import fastify from 'fastify';
+import helmet from '@fastify/helmet';
+import cookie from '@fastify/cookie';
+import { env } from './config/env.js';
+import { logger } from './observability/logger.js';
+import fs from 'node:fs';
+
+const app = fastify({
+  logger: logger,
+  disableRequestLogging: true
+});
+
+// Request logging middleware
+app.addHook('onRequest', (req, res, done) => {
+  req.log.info({ req }, 'Incoming request');
+  done();
+});
+app.addHook('onResponse', (req, res, done) => {
+  req.log.info({ res, responseTime: res.elapsedTime }, 'Request completed');
+  done();
+});
+
+// Security headers
+app.register(helmet, {
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'none'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https://*.amazonaws.com'],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'", 'https://*.amazonaws.com'],
+      frameAncestors: ["'none'"],
+      formAction: ["'self'"]
+    }
+  },
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  }
+});
+
+// Cookies
+app.register(cookie, {
+  secret: process.env.COOKIE_SECRET || 'fallback-secret-only-for-dev', 
+  hook: 'onRequest'
+});
+
+// Health check
+app.get('/health', async () => {
+  return { status: 'ok', timestamp: new Date().toISOString() };
+});
+
+const start = async () => {
+  try {
+    await app.listen({ port: env.PORT, host: '0.0.0.0' });
+    app.log.info(`Server listening on port ${env.PORT}`);
+  } catch (err) {
+    app.log.error(err);
+    process.exit(1);
+  }
+};
+
+start();

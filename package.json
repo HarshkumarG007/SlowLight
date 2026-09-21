@@ -1,0 +1,26 @@
+{
+  "name": "slow-light-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Slow Light Monorepo",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm -r run dev",
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "e2e": "pnpm -r run e2e"
+  },
+  "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "prettier": "^3.4.0",
+    "eslint": "^9.17.0",
+    "dependency-cruiser": "^16.8.0",
+    "@types/node": "^22.0.0"
+  }
+}

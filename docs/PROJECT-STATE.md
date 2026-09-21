@@ -32,8 +32,8 @@
 | Phase | Title | Status | Acceptance IDs | Target Date / S |
 |---|---|---|---|---|
 | **0** | **Architecture & Guardrails** | **COMPLETE** | DEP-01, SEC-15 | 2 S |
-| 1 | Foundation | READY TO EXECUTE | SEC-01..04, DEP-02 | 4 S |
-| 2 | Authentication ⚑ | QUEUED | AUTH-01..12 | 6 S |
+| **1** | **Foundation** | **COMPLETE** | SEC-01..04, DEP-02 | 4 S |
+| 2 | Authentication ⚑ | READY TO EXECUTE | AUTH-01..12 | 6 S |
 | 3 | Private Storage ⚑ | QUEUED | MED-01..10, SEC-05..09 | 4 S |
 | 4 | Core 3D | QUEUED | 3D-01..12, MOB-01..05 | 8 S |
 | 5 | Memory System | QUEUED | UX-01..10, AUTHZ-01..08 | 5 S |
