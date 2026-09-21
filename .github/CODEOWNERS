@@ -1,0 +1,25 @@
+# Slow Light CODEOWNERS
+# Rule A-14 & RULE-019/085: Non-negotiable human review required for auth, authz, crypto, media, database schema, and IAM.
+
+* @author
+
+# Security-critical code boundaries
+/apps/api/src/auth/ @author
+/apps/api/src/authz/ @author
+/apps/api/src/crypto/ @author
+/apps/api/src/media/ @author
+/apps/worker/ @author
+
+# Infrastructure, IAM, and Security configuration
+/infra/ @author
+/security/ @author
+
+# Database schema, migrations, and descriptors
+/db/ @author
+
+# Architectural decisions
+/docs/adr/ @author
+
+# Engineering constitution and agent rules
+/AGENTS.md @author
+/.agents/ @author

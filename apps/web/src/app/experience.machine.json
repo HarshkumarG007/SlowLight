@@ -1,0 +1,142 @@
+{
+  "id": "experience",
+  "initial": "boot",
+  "context": { "mode": "spatial-desktop", "tier": "high", "reducedMotion": false, "audioEnabled": false, "role": null, "focusId": null, "chapterId": null, "letterId": null, "returnPose": null, "retry": 0 },
+  "on": {
+    "SESSION_EXPIRED": { "target": "#sessionExpired" },
+    "NETWORK_LOST": { "target": "#offline" },
+    "LOGOUT": { "target": "#loggingOut" },
+    "CONTEXT_LOST": { "actions": ["setModeFlat"] }
+  },
+  "states": {
+    "boot": {
+      "id": "boot",
+      "invoke": { "src": "probeCapabilities", "onDone": { "target": "loading", "actions": ["storeCapabilities"] }, "onError": { "target": "loading", "actions": ["setModeFlat"] } }
+    },
+    "loading": {
+      "id": "loading",
+      "invoke": {
+        "src": "getSession",
+        "onDone": [
+          { "guard": "sessionIsPending", "target": "#knock" },
+          { "guard": "hasSession", "target": "#threshold", "actions": ["storeRole"] },
+          { "target": "#veil" }
+        ],
+        "onError": [ { "guard": "isOffline", "target": "#offline" }, { "target": "#fatal" } ]
+      }
+    },
+    "veil": {
+      "id": "veil",
+      "initial": "idle",
+      "entry": ["renderVeil"],
+      "states": {
+        "idle": { "on": { "PRESS": { "target": "adjusting", "actions": ["createAudioContext", "showAdjustLine"] }, "OPEN_ENROLL": { "target": "enrolling" } } },
+        "adjusting": {
+          "invoke": { "src": "passkeyLogin", "onDone": [ { "guard": "sessionIsPending", "target": "#knock" }, { "target": "#threshold", "actions": ["storeRole"] } ], "onError": { "target": "denied" } }
+        },
+        "denied": { "entry": ["showCalmError"], "on": { "PRESS": { "target": "adjusting" } }, "after": { "8000": { "target": "idle" } } },
+        "enrolling": {
+          "initial": "phrase",
+          "states": {
+            "phrase": { "on": { "SUBMIT_PHRASE": { "target": "registering" } } },
+            "registering": { "invoke": { "src": "passkeyEnroll", "onDone": { "target": "#threshold", "actions": ["storeRole"] }, "onError": { "target": "phrase", "actions": ["showCalmError"] } } }
+          }
+        }
+      }
+    },
+    "knock": {
+      "id": "knock",
+      "entry": ["showKnockPrompt"],
+      "on": { "SUBMIT_CODE": { "target": "knock", "reenter": true, "actions": ["verifyKnock"] }, "KNOCK_PASSED": { "target": "#threshold" }, "KNOCK_FAILED": { "target": "#veil" } }
+    },
+    "threshold": {
+      "id": "threshold",
+      "initial": "loadingWorld",
+      "states": {
+        "loadingWorld": {
+          "invoke": { "src": "loadWorldAndEngine", "onDone": { "target": "arriving", "actions": ["storeWorld"] }, "onError": [ { "guard": "isOffline", "target": "#offline" }, { "target": "#fatal" } ] }
+        },
+        "arriving": {
+          "entry": ["startArrival", "startAmbientIfEnabled"],
+          "after": { "7000": { "target": "#exploration" } },
+          "on": { "SKIP": { "target": "#exploration" } }
+        }
+      }
+    },
+    "sanctuary": {
+      "id": "sanctuary",
+      "initial": "exploration",
+      "on": { "OPEN_LETTERS": { "target": "#lettersIndex" }, "OPEN_ARCHIVE": { "target": "#archive" }, "OPEN_FUTURE": { "target": "#future" }, "REST": { "target": "#rest" } },
+      "states": {
+        "exploration": {
+          "id": "exploration",
+          "initial": "free",
+          "states": {
+            "free": {
+              "on": { "FOCUS_CHAPTER": { "target": "chapterFocus", "actions": ["setChapter", "drawConstellation"] }, "FOCUS_MEMORY": { "target": "#memory", "actions": ["setFocus", "saveReturnPose", "flyCameraToFocus"] }, "TRAVEL": { "actions": ["engineTravel"] } }
+            },
+            "chapterFocus": {
+              "on": { "LEAVE_CHAPTER": { "target": "free", "actions": ["clearChapter"] }, "FOCUS_MEMORY": { "target": "#memory", "actions": ["setFocus", "saveReturnPose", "flyCameraToFocus"] } }
+            }
+          }
+        },
+        "memory": {
+          "id": "memory",
+          "initial": "loading",
+          "entry": ["dimScene", "prefetchNeighbors"],
+          "exit": ["undimScene"],
+          "states": {
+            "loading": { "invoke": { "src": "fetchMemory", "onDone": { "target": "panel", "actions": ["unfoldPanel", "announceOpened"] }, "onError": { "target": "failed" } } },
+            "panel": {
+              "on": { "OPEN_VIEWER": { "target": "#viewer" }, "NEXT": { "target": "loading", "guard": "hasNext", "actions": ["setFocusToNext", "flyCameraToFocus"] }, "PREV": { "target": "loading", "guard": "hasPrev", "actions": ["setFocusToPrev", "flyCameraToFocus"] }, "CLOSE": { "target": "#exploration", "actions": ["foldPanel", "returnCamera", "restoreFocusAnchor"] } }
+            },
+            "viewer": {
+              "id": "viewer",
+              "entry": ["openViewer", "trapFocus"],
+              "exit": ["closeViewer", "releaseFocus", "revokeObjectUrls"],
+              "on": { "CLOSE": { "target": "panel" } }
+            },
+            "failed": { "on": { "RETRY": { "target": "loading" }, "CLOSE": { "target": "#exploration" } } }
+          }
+        },
+        "letters": {
+          "initial": "index",
+          "entry": ["enterLampRoom"],
+          "exit": ["exitLampRoom"],
+          "states": {
+            "index": {
+              "id": "lettersIndex",
+              "on": { "OPEN_LETTER": [ { "guard": "letterUnlockedForMe", "target": "reading", "actions": ["setLetter"] }, { "actions": ["showNotYet"] } ], "CLOSE": { "target": "#exploration" } }
+            },
+            "reading": {
+              "invoke": { "src": "fetchLetter", "onError": { "target": "index", "actions": ["showNotYet"] } },
+              "initial": "text",
+              "states": {
+                "text": { "on": { "OPEN_VIEWER": { "target": "viewer" }, "CLOSE": { "target": "#lettersIndex" } } },
+                "viewer": { "id": "letterViewer", "entry": ["openViewer", "trapFocus"], "exit": ["closeViewer", "releaseFocus", "revokeObjectUrls"], "on": { "CLOSE": { "target": "text" } } }
+              }
+            }
+          }
+        },
+        "archive": { "id": "archive", "on": { "OPEN_MEMORY": { "target": "#memory", "actions": ["setFocus"] }, "CLOSE": { "target": "#exploration" } } },
+        "future": {
+          "id": "future",
+          "entry": ["railToFrontier"],
+          "initial": "approaching",
+          "states": {
+            "approaching": { "on": { "RAIL_END": { "target": "ending" } } },
+            "ending": { "entry": ["thinAmbience"], "after": { "4000": { "actions": ["showClosingLine"] }, "12000": { "actions": ["applyFinalGlow"] } } }
+          },
+          "on": { "CLOSE": { "target": "#exploration" } }
+        },
+        "rest": { "id": "rest", "entry": ["fadeToBlack", "releaseGpuAndAudio"], "on": { "WAKE": { "target": "#exploration", "actions": ["rebuildEngine"] } } }
+      }
+    },
+    "offline": { "id": "offline", "entry": ["dimHud", "showConnectionDropped"], "invoke": { "src": "backoffReconnect" }, "on": { "NETWORK_RESTORED": { "target": "#loading" } } },
+    "sessionExpired": { "id": "sessionExpired", "entry": ["clearSensitiveCaches"], "after": { "1200": { "target": "#veil" } } },
+    "loggingOut": { "id": "loggingOut", "entry": ["clearSensitiveCaches"], "invoke": { "src": "logout", "onDone": { "target": "#veil" }, "onError": { "target": "#veil" } } },
+    "fatal": { "id": "fatal", "entry": ["showRestingScreen"], "on": { "RETRY": { "target": "#boot" } } }
+  },
+  "guards": ["sessionIsPending", "hasSession", "isOffline", "hasNext", "hasPrev", "letterUnlockedForMe"],
+  "actors": ["probeCapabilities", "getSession", "passkeyLogin", "passkeyEnroll", "loadWorldAndEngine", "fetchMemory", "fetchLetter", "backoffReconnect", "logout"]
+}

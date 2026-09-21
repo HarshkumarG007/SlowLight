@@ -1,0 +1,15 @@
+{
+  "performanceBudgets": {
+    "initialJS": "Veil route <= 120 KB gzip (React, router, WebAuthn browser, machine); world chunk <= 350 KB gzip loaded only after authentication",
+    "initialCSS": "<= 20 KB gzip",
+    "initialImages": "0 raster images on the Veil (CSS/SVG light only)",
+    "fonts": "<= 120 KB total WOFF2, two variable files preloaded",
+    "largestContentfulPaint": "<= 1.8 s on Fast 4G, mid-tier Android; <= 1.0 s desktop",
+    "interactionLatency": "INP <= 200 ms; hover ring <= 100 ms",
+    "cumulativeLayoutShift": "<= 0.05",
+    "frameRate": "Ultra/High 60 fps; Medium >= 45; Low >= 30",
+    "mobileMemoryTarget": "<= 250 MB total (JS heap + GPU estimate) on Low tier",
+    "gpu": "<= 96 MB Ultra, <= 32 MB Low; <= 40 draw calls desktop, <= 20 mobile",
+    "api": "world manifest <= 150 ms server time at 2,000 memories; p95 memory fetch <= 100 ms"
+  }
+}

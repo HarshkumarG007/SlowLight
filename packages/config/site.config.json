@@ -1,0 +1,41 @@
+{
+  "site": { "name": "Slow Light", "description": "A private place.", "timezone": "[IANA_TIMEZONE]", "defaultLocale": "en", "themeColor": "#050814" },
+  "experience": {
+    "defaultChapter": null,
+    "audioEnabledByDefault": false,
+    "reducedMotionSupport": true,
+    "thresholdMaxSeconds": 8,
+    "darkAdaptation": { "enabled": true, "idleSeconds": 6, "rampSeconds": 8 },
+    "hudFadeAfterSeconds": 4,
+    "restFadeMs": 2000
+  },
+  "theme": { "default": "night", "roomThemes": { "letters": "lamp" }, "tokensPath": "packages/tokens/tokens.json" },
+  "security": {
+    "session": {
+      "recipient": { "idle": "72h", "absolute": "30d", "rotateEvery": "24h" },
+      "ephemeral": { "idle": "30m", "absolute": "2h" },
+      "author": { "idle": "30m", "absolute": "8h", "elevatedFor": "15m" }
+    },
+    "mediaUrlLifetimeSeconds": { "image": 90, "audio": 600, "video": 900 },
+    "maxLoginAttempts": 5,
+    "loginCooldownMinutes": 15,
+    "challengeTtlSeconds": 120,
+    "invite": { "ttlHours": 24, "maxAttempts": 5, "phraseWords": 5 },
+    "knock": { "enabled": true, "codeDigits": 6, "ttlMinutes": 10, "maxAttempts": 5 },
+    "geoAllow": ["[COUNTRY_CODE]"],
+    "adminDoorDefaultHours": 4,
+    "requireSecondAdminCredential": true
+  },
+  "media": {
+    "image": { "widths": [320, 960, 1440, 2560], "avifQuality": 55, "jpegQuality": 82, "maxPixels": 100000000, "maxBytes": 52428800 },
+    "video": { "maxBytes": 2147483648, "maxMinutes": 60, "renditions": ["720p", "1080p"], "crf": 22 },
+    "audio": { "maxBytes": 209715200, "maxMinutes": 120, "bitrateKbps": 128 },
+    "trashDays": 30
+  },
+  "performance": {
+    "budgets": { "veilJsGzipKB": 120, "worldChunkGzipKB": 350, "lcpMs": 1800, "inpMs": 200, "cls": 0.05, "mobileMemoryMB": 250 },
+    "tierGovernor": { "windowSeconds": 2, "stepDownAt": 1.25, "stepUpAfterStableSeconds": 20 }
+  },
+  "privacy": { "analytics": false, "clientErrorReporting": true, "recipientActivityVisibleToAuthor": false, "auditContentAccess": false, "ipStorage": "prefix" },
+  "features": { "timeline": true, "letters": true, "archive": true, "future": true, "map": false, "replies": false, "gyroParallax": false, "e2ee": false }
+}

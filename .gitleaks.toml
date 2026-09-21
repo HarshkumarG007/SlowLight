@@ -1,0 +1,12 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Slow Light allowlist for mock/synthetic identifiers and test fixtures"
+paths = [
+  '''packages/shared/fixtures/.*''',
+  '''db/schema\.descriptor\.json''',
+]
+regexes = [
+  '''v1\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+''', # Mock sealed tokens in specs/fixtures
+]

@@ -1,0 +1,116 @@
+# 22 — DESIGN TOKENS
+
+Source of truth for all visual values. A build script (`packages/tokens`) emits CSS custom properties (`--sl-color-background`, …) and a typed TS module. **No literal color, size, duration or z-index may appear in component code** (RULE-041).
+
+<!-- extract: packages/tokens/tokens.json -->
+```json
+{
+  "color": {
+    "themes": {
+      "night": {
+        "background": "#050814",
+        "backgroundDeep": "#02040A",
+        "surface": "#0C1120",
+        "surfaceElevated": "#141B2D",
+        "primary": "#E4B07A",
+        "onPrimary": "#1A1206",
+        "secondary": "#8CB0D8",
+        "accent": "#F4EBD9",
+        "textPrimary": "#ECE6D8",
+        "textSecondary": "#B9B5AA",
+        "textMuted": "#8F95A6",
+        "border": "#232C42",
+        "borderStrong": "#5F6B85",
+        "focus": "#F4EBD9",
+        "success": "#7DBE9C",
+        "warning": "#E0BE5C",
+        "danger": "#E5786D"
+      },
+      "lamp": {
+        "background": "#120D08",
+        "backgroundDeep": "#0A0705",
+        "surface": "#1B140D",
+        "surfaceElevated": "#261C12",
+        "primary": "#EBB874",
+        "onPrimary": "#1A1206",
+        "secondary": "#9DB8D6",
+        "accent": "#F6E9CF",
+        "textPrimary": "#F1E4CC",
+        "textSecondary": "#CDBB9C",
+        "textMuted": "#A39178",
+        "border": "#3A2C1C",
+        "borderStrong": "#7A6647",
+        "focus": "#F6E9CF",
+        "success": "#86C4A0",
+        "warning": "#E6C465",
+        "danger": "#EC8378"
+      }
+    },
+    "timeRamp": {
+      "comment": "Doppler mapping. t=0 oldest memory, t=1 the Frontier (now). Future entries use future.",
+      "stops": [
+        { "t": 0.0, "color": "#E39A55" },
+        { "t": 0.5, "color": "#F0D3A6" },
+        { "t": 1.0, "color": "#F7F2E8" }
+      ],
+      "future": "#8CB0D8"
+    },
+    "scene": {
+      "void": "#050814",
+      "fog": "#050814",
+      "lampGlow": "#F2B66D",
+      "constellationLine": "#F0D3A6"
+    }
+  },
+  "typography": {
+    "family": {
+      "voice": "'Newsreader', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif",
+      "interface": "'Atkinson Hyperlegible Next', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+      "code": "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+    },
+    "role": {
+      "display": { "family": "voice", "weight": 300, "size": "clamp(3rem, 9vw, 7.5rem)", "lineHeight": 0.98, "letterSpacing": "-0.02em" },
+      "title": { "family": "voice", "weight": 400, "size": "clamp(2rem, 4.2vw, 3rem)", "lineHeight": 1.12, "letterSpacing": "-0.01em" },
+      "heading": { "family": "voice", "weight": 500, "size": "1.625rem", "lineHeight": 1.2, "letterSpacing": "0" },
+      "reading": { "family": "voice", "weight": 400, "size": "1.1875rem", "lineHeight": 1.75, "letterSpacing": "0.003em" },
+      "body": { "family": "voice", "weight": 400, "size": "1.0625rem", "lineHeight": 1.65, "letterSpacing": "0.003em" },
+      "ui": { "family": "interface", "weight": 400, "size": "0.9375rem", "lineHeight": 1.45, "letterSpacing": "0.01em" },
+      "uiStrong": { "family": "interface", "weight": 600, "size": "0.9375rem", "lineHeight": 1.45, "letterSpacing": "0.01em" },
+      "meta": { "family": "interface", "weight": 400, "size": "0.8125rem", "lineHeight": 1.4, "letterSpacing": "0.02em" }
+    },
+    "measure": { "reading": "62ch", "ui": "48ch" },
+    "features": { "reading": "'onum' 1, 'kern' 1", "dates": "'tnum' 1, 'lnum' 1" },
+    "loading": { "format": "woff2", "display": "swap", "preload": ["Newsreader-Variable", "AtkinsonHyperlegibleNext-Variable"] }
+  },
+  "spacing": { "0": "0", "1": "0.25rem", "2": "0.5rem", "3": "0.75rem", "4": "1rem", "5": "1.5rem", "6": "2rem", "7": "3rem", "8": "4rem", "9": "6rem", "10": "8rem" },
+  "radius": { "none": "0", "control": "0.5rem", "panel": "1rem", "sheet": "1.5rem", "media": "0.25rem", "pill": "999px" },
+  "shadow": {
+    "subtle": "0 1px 2px rgba(2,4,10,0.5)",
+    "elevated": "0 12px 32px -8px rgba(2,4,10,0.7)",
+    "cinematic": "0 40px 120px -20px rgba(2,4,10,0.85)",
+    "glow": "0 0 24px 2px rgba(228,176,122,0.28)"
+  },
+  "motion": {
+    "duration": { "instant": "80ms", "quick": "160ms", "base": "280ms", "slow": "480ms", "camera": "900ms", "cinematic": "2400ms" },
+    "easing": {
+      "standard": "cubic-bezier(0.2, 0, 0, 1)",
+      "emerge": "cubic-bezier(0.16, 1, 0.3, 1)",
+      "settle": "cubic-bezier(0.32, 0.72, 0, 1)",
+      "exit": "cubic-bezier(0.4, 0, 1, 1)",
+      "breath": "cubic-bezier(0.37, 0, 0.63, 1)"
+    },
+    "camera": { "dampingSeconds": 0.35, "focusMs": 900, "returnMs": 700, "travelInertia": 0.92 },
+    "hierarchy": ["user-triggered response (quick/base)", "state change (base/slow)", "camera (camera)", "single orchestrated sequence: Threshold (cinematic)"],
+    "reduced": { "duration": "1ms", "crossfadeMs": 200 }
+  },
+  "breakpoints": { "sm": "480px", "md": "768px", "lg": "1024px", "xl": "1440px", "2xl": "1920px" },
+  "zIndex": { "scene": 0, "sceneOverlay": 10, "hud": 20, "panel": 30, "viewer": 40, "modal": 50, "toast": 60, "veil": 70, "skipLink": 80 },
+  "blur": { "none": "0", "soft": "8px", "medium": "16px", "heavy": "32px" },
+  "a11y": {
+    "focusRing": { "width": "2px", "offset": "2px" },
+    "minTarget": "44px",
+    "reducedTransparency": { "surfaceOpacity": 1, "blur": "none" },
+    "highContrast": { "textSecondary": "#ECE6D8", "textMuted": "#B9B5AA", "border": "#5F6B85" }
+  }
+}
+```
