@@ -31,8 +31,8 @@
 
 | Phase | Title | Status | Acceptance IDs | Target Date / S |
 |---|---|---|---|---|
-| **0** | **Architecture & Guardrails** | **IN PROGRESS** | DEP-01, SEC-15 | 2 S |
-| 1 | Foundation | PLANNED | SEC-01..04, DEP-02 | 4 S |
+| **0** | **Architecture & Guardrails** | **COMPLETE** | DEP-01, SEC-15 | 2 S |
+| 1 | Foundation | READY TO EXECUTE | SEC-01..04, DEP-02 | 4 S |
 | 2 | Authentication ⚑ | QUEUED | AUTH-01..12 | 6 S |
 | 3 | Private Storage ⚑ | QUEUED | MED-01..10, SEC-05..09 | 4 S |
 | 4 | Core 3D | QUEUED | 3D-01..12, MOB-01..05 | 8 S |
@@ -46,17 +46,17 @@
 
 ---
 
-## 3. Phase 0: Architecture & Guardrails (Current Phase)
+## 3. Phase 0: Architecture & Guardrails (Completed)
 
 ### Goal
 Establish verified tooling baselines, initialize repository version control and structure per Spec 19, record locked Architectural Decision Records (ADR-001 through ADR-012), establish CI guardrail skeletons with commit-pinned actions, enforce CODEOWNERS for security-critical paths, and document AWS Organization guardrails.
 
 ### Tasks
 - [x] **T0.1 Tooling Verification & Advisory Policy**: Verify Node, pnpm, git, ffmpeg, Docker. Document versions and advisory policy in `memory.md`.
-- [ ] **T0.2 Repository Skeleton & Governance**: Initialize git repo, create `.gitignore`, `.github/CODEOWNERS`, `.agents/rules/` (mirroring AGENTS.md), `.agents/workflows/phase.md`.
-- [ ] **T0.3 Architectural Decision Records (ADR-001…012)**: Author formal ADRs in `docs/adr/` covering all locked decisions (D-01…D-12).
-- [ ] **T0.4 CI Guardrail Skeleton**: GitHub Actions workflow (`.github/workflows/ci.yml`, `security.yml`) with pinned SHAs.
-- [ ] **T0.5 AWS Organization Guardrails Checklist**: Document AWS MFA, SCP, Object Lock, backup account, and budget alarm policies in `infra/AWS-ORGANIZATION-GUARDRAILS.md`.
+- [x] **T0.2 Repository Skeleton & Governance**: Initialize git repo, create `.gitignore`, `.github/CODEOWNERS`, `.agents/rules/` (mirroring AGENTS.md), `.agents/workflows/phase.md`.
+- [x] **T0.3 Architectural Decision Records (ADR-001…012)**: Author formal ADRs in `docs/adr/` covering all locked decisions (D-01…D-12).
+- [x] **T0.4 CI Guardrail Skeleton**: GitHub Actions workflow (`.github/workflows/ci.yml`, `security.yml`) with pinned SHAs.
+- [x] **T0.5 AWS Organization Guardrails Checklist**: Document AWS MFA, SCP, Object Lock, backup account, and budget alarm policies in `infra/AWS-ORGANIZATION-GUARDRAILS.md`.
 
 ### Files to Add / Change
 - `docs/PROJECT-STATE.md` (this file)
