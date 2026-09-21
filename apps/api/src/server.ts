@@ -4,6 +4,7 @@ import cookie from '@fastify/cookie';
 import { env } from './config/env.js';
 import { logger } from './observability/logger.js';
 import fs from 'node:fs';
+import { authRoutes } from './routes/auth.routes.js';
 
 const app = fastify({
   logger: logger,
@@ -50,6 +51,7 @@ app.register(cookie, {
 });
 
 // Health check
+app.register(authRoutes);
 app.get('/health', async () => {
   return { status: 'ok', timestamp: new Date().toISOString() };
 });

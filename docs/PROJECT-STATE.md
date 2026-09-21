@@ -33,8 +33,8 @@
 |---|---|---|---|---|
 | **0** | **Architecture & Guardrails** | **COMPLETE** | DEP-01, SEC-15 | 2 S |
 | **1** | **Foundation** | **COMPLETE** | SEC-01..04, DEP-02 | 4 S |
-| 2 | Authentication ⚑ | READY TO EXECUTE | AUTH-01..12 | 6 S |
-| 3 | Private Storage ⚑ | QUEUED | MED-01..10, SEC-05..09 | 4 S |
+| **2** | **Authentication ⚑** | **COMPLETE** | AUTH-01..12 | 6 S |
+| 3 | Private Storage ⚑ | READY TO EXECUTE | MED-01..10, SEC-05..09 | 4 S |
 | 4 | Core 3D | QUEUED | 3D-01..12, MOB-01..05 | 8 S |
 | 5 | Memory System | QUEUED | UX-01..10, AUTHZ-01..08 | 5 S |
 | 6 | Media Experience | QUEUED | MED-11..16, A11Y-05..08 | 4 S |

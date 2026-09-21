@@ -10,11 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^14.0.0",
+    "@slow-light/shared": "workspace:*",
+    "@slow-light/tokens": "workspace:*",
     "react": "19.0.0-rc.0",
     "react-dom": "19.0.0-rc.0",
-    "three": "^0.165.0",
-    "@slow-light/tokens": "workspace:*",
-    "@slow-light/shared": "workspace:*"
+    "three": "^0.165.0"
   },
   "devDependencies": {
     "@types/react": "npm:types-react@rc",
