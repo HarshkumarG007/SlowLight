@@ -11,6 +11,7 @@ import {
   date,
   primaryKey,
   customType,
+  index,
 } from 'drizzle-orm/pg-core';
 
 // bytea is not directly exported; define a custom type mapping to Buffer
@@ -235,7 +236,11 @@ export const memories = pgTable('memories', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
-});
+}, (t) => ({
+  chapterIdx: index('memories_chapter_idx').on(t.chapterId),
+  statusIdx: index('memories_status_idx').on(t.status),
+  occurredOnIdx: index('memories_occurred_on_idx').on(t.occurredOn),
+}));
 
 export const memoryTags = pgTable('memory_tags', {
   memoryId: uuid('memory_id').notNull().references(() => memories.id, { onDelete: 'cascade' }),
@@ -257,7 +262,10 @@ export const letters = pgTable('letters', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
-});
+}, (t) => ({
+  chapterIdx: index('letters_chapter_idx').on(t.chapterId),
+  statusIdx: index('letters_status_idx').on(t.status),
+}));
 
 export const letterBodies = pgTable('letter_bodies', {
   letterId: uuid('letter_id').primaryKey().references(() => letters.id, { onDelete: 'cascade' }),
@@ -277,7 +285,10 @@ export const futureEntries = pgTable('future_entries', {
   version: integer('version').notNull().default(1),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-});
+}, (t) => ({
+  statusIdx: index('future_entries_status_idx').on(t.status),
+  targetDateIdx: index('future_entries_target_date_idx').on(t.targetDate),
+}));
 
 export const favorites = pgTable('favorites', {
   userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
