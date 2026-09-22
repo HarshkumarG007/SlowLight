@@ -3,10 +3,10 @@ The assistant reads this at the start of every task and appends to it at the end
 
 ## 1. Current status
 - **Date:** 2026-09-22
-- **Workflow stage:** Setup & Phase 0 Architecture in progress
-- **Current phase / task:** Phase 0 / T0.1–T0.5
-- **Last completed task:** T0.1 Tooling & environment verification
-- **Next task:** T0.2 Repository skeleton, git init, CODEOWNERS, rules mirror
+- **Workflow stage:** Phase 7 (Admin) Implementation Complete
+- **Current phase / task:** Phase 7 complete
+- **Last completed task:** T7.4 Admin Door CLI Script
+- **Next task:** Phase 8 (Security Hardening)
 - **Blockers:** none
 - **Open questions for the Author (must answer before listed phase):**
   - Domain name — needed before Phase 2 (WebAuthn RP ID is origin-bound)
@@ -100,4 +100,7 @@ New inputs, boundaries, secrets, or log lines introduced per task, and how each 
 ## 10. Session log (newest first)
 | Date | Task | What changed | Evidence (tests/commands) | Follow-ups |
 |---|---|---|---|---|
+| 2026-09-22 | Phase 7 | Created standalone Admin SPA (Vite MPA), implemented Content Editor, Uploader, Security Panel components, added guarded `admin.routes.ts`, and `admin-door` CLI stub. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed natively. | Start Phase 8 |
+| 2026-09-22 | Phase 6 | Implemented MediaViewer, MediaAsset with URL refresh logic, AudioSystem for ambience, and updated worker stub to return variants. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed natively. | Start Phase 7 |
+| 2026-09-22 | Phase 5 | Completed Phase 5 Memory System (DB schema, XState machine, API routes, SL-Text parser, UI components). | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed. | Start Phase 6 |
 | 2026-09-20 | — | Specification (SLOW-LIGHT-MASTER-SPEC.md, 36 spec docs) and all project docs created; pre-built assets placed in repo | — | Start T0.1 |

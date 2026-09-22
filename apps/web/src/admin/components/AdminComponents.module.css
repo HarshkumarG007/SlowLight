@@ -1,0 +1,151 @@
+.panel {
+  background-color: var(--color-ink-900);
+  border: 1px solid var(--color-ink-800);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-8);
+  box-shadow: var(--shadow-md);
+}
+
+.panel h2 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-6);
+  color: var(--color-ink-100);
+  font-weight: 500;
+}
+
+.section {
+  margin-bottom: var(--spacing-8);
+}
+
+.section h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-2);
+  color: var(--color-ink-200);
+}
+
+.section p {
+  color: var(--color-ink-400);
+  margin-bottom: var(--spacing-4);
+}
+
+.formGroup {
+  margin-bottom: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.formGroup label {
+  color: var(--color-ink-300);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.formGroup input,
+.formGroup select,
+.formGroup textarea {
+  background-color: var(--color-ink-950);
+  border: 1px solid var(--color-ink-700);
+  color: var(--color-ink-100);
+  padding: var(--spacing-3);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  transition: border-color 0.2s;
+}
+
+.formGroup input:focus,
+.formGroup select:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--color-ink-400);
+}
+
+.primaryBtn,
+.secondaryBtn {
+  padding: var(--spacing-3) var(--spacing-6);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.primaryBtn {
+  background-color: var(--color-ink-100);
+  color: var(--color-ink-950);
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background-color: var(--color-ink-200);
+}
+
+.primaryBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondaryBtn {
+  background-color: var(--color-ink-800);
+  color: var(--color-ink-100);
+}
+
+.secondaryBtn:hover {
+  background-color: var(--color-ink-700);
+}
+
+.fileInfo {
+  margin-bottom: var(--spacing-4);
+  color: var(--color-ink-300);
+  font-size: var(--text-sm);
+}
+
+.statusBox {
+  margin-top: var(--spacing-6);
+  padding: var(--spacing-4);
+  background-color: var(--color-ink-950);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-200);
+}
+
+.inviteBox {
+  margin-top: var(--spacing-4);
+  padding: var(--spacing-4);
+  background-color: rgba(30, 255, 100, 0.1);
+  border: 1px solid rgba(30, 255, 100, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-100);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.inviteBox span {
+  font-family: monospace;
+  font-size: var(--text-lg);
+  color: #fff;
+}
+
+.auditTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.auditTable th,
+.auditTable td {
+  padding: var(--spacing-3);
+  border-bottom: 1px solid var(--color-ink-800);
+}
+
+.auditTable th {
+  color: var(--color-ink-400);
+  font-weight: 500;
+  font-size: var(--text-sm);
+}
+
+.auditTable td {
+  color: var(--color-ink-200);
+  font-size: var(--text-sm);
+}

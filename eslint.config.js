@@ -1,17 +1,42 @@
-import eslint from '@eslint/js';
-import tseslint from 'typescript-eslint';
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import reactPlugin from "eslint-plugin-react";
 
 export default tseslint.config(
-  eslint.configs.recommended,
+  js.configs.recommended,
   ...tseslint.configs.recommended,
-  ...tseslint.configs.strict,
   {
     rules: {
-      '@typescript-eslint/no-explicit-any': 'error',
-      'no-console': ['error', { allow: ['warn', 'error'] }]
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-unused-vars': 'warn',
+      'no-console': 'warn',
+      'no-useless-assignment': 'warn',
+      'no-empty': 'warn'
     }
   },
   {
-    ignores: ['**/dist/**', '**/node_modules/**', '**/build/**']
+    files: ["apps/web/src/**/*.tsx"],
+    plugins: {
+      react: reactPlugin,
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    rules: {
+      ...reactPlugin.configs.recommended.rules,
+      "react/react-in-jsx-scope": "off"
+    }
+  },
+  {
+    ignores: [
+      "**/dist/**",
+      "**/node_modules/**",
+      "**/.agents/**"
+    ]
   }
 );

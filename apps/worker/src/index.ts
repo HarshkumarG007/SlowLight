@@ -49,7 +49,9 @@ async function main() {
       // Stub: find processing assets and mark them ready
       const result = await client`
         UPDATE app.media_assets
-        SET status = 'ready', variants = '[]'::jsonb
+        SET 
+          status = 'ready', 
+          variants = '[{"variant": "thumb", "width": 320, "height": 320}, {"variant": "display", "width": 960, "height": 960}]'::jsonb
         WHERE status = 'processing'
           AND deleted_at IS NULL
         RETURNING id

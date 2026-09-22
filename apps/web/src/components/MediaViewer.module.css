@@ -1,0 +1,230 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-ink-900);
+  opacity: 0.95;
+}
+
+.closeBtn {
+  position: absolute;
+  top: var(--spacing-6);
+  right: var(--spacing-6);
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: var(--color-ink-100);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-2);
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeBtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+}
+
+.viewerContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 1200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--color-ink-400);
+  padding: var(--spacing-4);
+  cursor: pointer;
+  transition: color 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.navBtn:hover:not(:disabled) {
+  color: var(--color-ink-100);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.navBtn:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+.navLeft {
+  left: var(--spacing-4);
+}
+
+.navRight {
+  right: var(--spacing-4);
+}
+
+.mediaStage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-16) var(--spacing-20); /* Padding to avoid overlap with buttons */
+}
+
+/* 
+  MediaAsset shared styles 
+*/
+.assetContainer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lqip, .image, .video {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-2xl);
+  transition: opacity 0.3s ease;
+}
+
+.lqip {
+  position: absolute;
+  filter: blur(10px);
+  transform: scale(1.02); /* prevent white edges from blur */
+}
+
+.audio {
+  width: 100%;
+  max-width: 400px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-lg);
+}
+
+.errorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-4);
+  color: var(--color-ink-400);
+  font-family: var(--font-sans);
+}
+
+.errorState button {
+  background-color: transparent;
+  border: 1px solid var(--color-ink-600);
+  color: var(--color-ink-200);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.errorState button:hover {
+  background-color: var(--color-ink-800);
+  border-color: var(--color-ink-400);
+}
+
+/* Captions and Indicators */
+.captionContainer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--spacing-12) var(--spacing-6) var(--spacing-16);
+  background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+  z-index: 5;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.captionText {
+  max-width: 800px;
+  text-align: center;
+  color: var(--color-ink-50);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  font-size: var(--text-lg);
+  pointer-events: auto;
+}
+
+.indicators {
+  position: absolute;
+  bottom: var(--spacing-6);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-2);
+  z-index: 10;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-ink-600);
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.indicatorActive {
+  background-color: var(--color-ink-100);
+  transform: scale(1.2);
+}
+
+.indicator:hover:not(.indicatorActive) {
+  background-color: var(--color-ink-400);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .mediaStage {
+    padding: var(--spacing-16) 0;
+  }
+  
+  .navBtn {
+    padding: var(--spacing-2);
+  }
+  
+  .navLeft {
+    left: var(--spacing-1);
+  }
+  
+  .navRight {
+    right: var(--spacing-1);
+  }
+  
+  .closeBtn {
+    top: env(safe-area-inset-top, var(--spacing-4));
+    right: env(safe-area-inset-right, var(--spacing-4));
+  }
+  
+  .indicators {
+    bottom: env(safe-area-inset-bottom, var(--spacing-4));
+  }
+}

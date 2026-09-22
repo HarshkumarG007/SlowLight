@@ -10,6 +10,7 @@ import { Constellations } from './systems/Constellations.js';
 import { RailCamera } from './systems/RailCamera.js';
 import { Picking } from './systems/Picking.js';
 import { Exposure } from './systems/Exposure.js';
+import { AudioSystem } from './systems/AudioSystem.js';
 import { layoutLights } from '@slow-light/shared';
 // Assuming night theme void color from spec tokens
 const VOID_COLOR = '#050814'; 
@@ -30,6 +31,7 @@ export class Engine {
   private constellations: Constellations;
   private picking: Picking;
   private exposure: Exposure;
+  private audioSystem: AudioSystem;
   
   private currentTier: QualityTier;
   private reducedMotion = false;
@@ -66,6 +68,7 @@ export class Engine {
     this.constellations = new Constellations(this.tracker, '#232C42'); // scene.border roughly
     this.picking = new Picking(this.cameraSystem.camera);
     this.exposure = new Exposure();
+    this.audioSystem = new AudioSystem();
 
     this.scene.add(this.lightField.mesh);
     this.scene.add(this.stars.mesh);
@@ -105,6 +108,10 @@ export class Engine {
         break;
       case 'setReducedMotion':
         this.reducedMotion = cmd.enabled;
+        break;
+      case 'audioToggle':
+        if (cmd.enabled) this.audioSystem.enable();
+        else this.audioSystem.disable();
         break;
       case 'dispose':
         this.dispose();
@@ -260,6 +267,7 @@ export class Engine {
   };
 
   dispose() {
+    this.audioSystem.dispose();
     this.loop.dispose();
     this.unsubBus();
     this.tracker.dispose();

@@ -8,6 +8,12 @@ import { authRoutes } from './routes/auth.routes.js';
 import { buildKeyRing } from './crypto/keyring.js';
 import { LocalKeyService, ensureLocalDevKey } from './crypto/localKeyService.js';
 import { mediaRoutes } from './routes/media.routes.js';
+import { worldRoutes } from './routes/world.routes.js';
+import { memoryRoutes } from './routes/memories.routes.js';
+import { letterRoutes } from './routes/letters.routes.js';
+import { archiveRoutes } from './routes/archive.routes.js';
+import { futureRoutes } from './routes/future.routes.js';
+import { adminRoutes } from './routes/admin.routes.js';
 
 const app = fastify({
   logger: logger,
@@ -70,6 +76,12 @@ const start = async () => {
 
     app.register(authRoutes);
     app.register(mediaRoutes);
+    app.register(worldRoutes);
+    app.register(memoryRoutes);
+    app.register(letterRoutes);
+    app.register(archiveRoutes);
+    app.register(futureRoutes);
+    app.register(adminRoutes);
 
     await app.listen({ port: env.PORT, host: '0.0.0.0' });
     app.log.info(`Server listening on port ${env.PORT}`);

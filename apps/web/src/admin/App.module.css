@@ -1,0 +1,58 @@
+.adminLayout {
+  min-height: 100vh;
+  background-color: var(--color-ink-950);
+  color: var(--color-ink-50);
+  font-family: var(--font-sans);
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: var(--spacing-6) var(--spacing-8);
+  border-bottom: 1px solid var(--color-ink-800);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: var(--text-xl);
+  font-weight: 500;
+  margin: 0;
+  color: var(--color-ink-200);
+}
+
+.nav {
+  display: flex;
+  gap: var(--spacing-4);
+}
+
+.nav button {
+  background: transparent;
+  border: none;
+  color: var(--color-ink-400);
+  font-size: var(--text-base);
+  padding: var(--spacing-2) var(--spacing-4);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+.nav button:hover {
+  background-color: var(--color-ink-800);
+  color: var(--color-ink-200);
+}
+
+.nav button.active {
+  background-color: var(--color-ink-800);
+  color: var(--color-ink-50);
+  font-weight: 500;
+}
+
+.main {
+  flex: 1;
+  padding: var(--spacing-8);
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}

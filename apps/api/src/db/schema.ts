@@ -8,6 +8,7 @@ import {
   integer,
   smallint,
   jsonb,
+  date,
   primaryKey,
   customType,
 } from 'drizzle-orm/pg-core';
@@ -173,3 +174,114 @@ export const letterAssets = pgTable(
   },
   (t) => ({ pk: primaryKey({ columns: [t.letterId, t.assetId] }) }),
 );
+
+export const siteTexts = pgTable('site_texts', {
+  key: text('key').primaryKey(),
+  valueSealed: text('value_sealed').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const userState = pgTable('user_state', {
+  userId: uuid('user_id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
+  lastSeenWorldAt: timestamp('last_seen_world_at', { withTimezone: true }),
+});
+
+export const chapters = pgTable('chapters', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  title: text('title').notNull(),
+  subtitle: text('subtitle'),
+  introSealed: text('intro_sealed'),
+  ambienceKey: text('ambience_key'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  status: text('status', { enum: ['draft', 'published', 'archived'] }).notNull().default('draft'),
+  version: integer('version').notNull().default(1),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const locations = pgTable('locations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  labelSealed: text('label_sealed').notNull(),
+  coordsSealed: text('coords_sealed'),
+  precision: text('precision', { enum: ['exact', 'area', 'city', 'country', 'hidden'] }).notNull().default('city'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const tags = pgTable('tags', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  slug: text('slug').notNull().unique(),
+  label: text('label').notNull(),
+});
+
+export const memories = pgTable('memories', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  chapterId: uuid('chapter_id').references(() => chapters.id, { onDelete: 'restrict' }),
+  title: text('title').notNull(),
+  subtitle: text('subtitle'),
+  storySealed: text('story_sealed'),
+  kind: text('kind', { enum: ['moment', 'milestone', 'trip', 'conversation', 'ritual', 'gift'] }).notNull().default('moment'),
+  significance: smallint('significance').notNull().default(2),
+  emotion: text('emotion', { enum: ['tender', 'joyful', 'quiet', 'bittersweet', 'awe', 'playful'] }),
+  occurredOn: date('occurred_on').notNull(),
+  datePrecision: text('date_precision', { enum: ['day', 'month', 'year', 'approx'] }).notNull().default('day'),
+  recurrence: text('recurrence', { enum: ['none', 'yearly'] }).notNull().default('none'),
+  locationId: uuid('location_id').references(() => locations.id, { onDelete: 'set null' }),
+  layoutHint: jsonb('layout_hint'),
+  status: text('status', { enum: ['draft', 'scheduled', 'published', 'archived'] }).notNull().default('draft'),
+  publishAt: timestamp('publish_at', { withTimezone: true }),
+  version: integer('version').notNull().default(1),
+  createdBy: uuid('created_by').references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+});
+
+export const memoryTags = pgTable('memory_tags', {
+  memoryId: uuid('memory_id').notNull().references(() => memories.id, { onDelete: 'cascade' }),
+  tagId: uuid('tag_id').notNull().references(() => tags.id, { onDelete: 'cascade' }),
+}, (t) => ({ pk: primaryKey({ columns: [t.memoryId, t.tagId] }) }));
+
+export const letters = pgTable('letters', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  chapterId: uuid('chapter_id').references(() => chapters.id, { onDelete: 'set null' }),
+  title: text('title').notNull(),
+  unlockMode: text('unlock_mode', { enum: ['open', 'timed', 'held'] }).notNull().default('open'),
+  unlockAt: timestamp('unlock_at', { withTimezone: true }),
+  releasedAt: timestamp('released_at', { withTimezone: true }),
+  sealCeremony: boolean('seal_ceremony').notNull().default(false),
+  openedAt: timestamp('opened_at', { withTimezone: true }),
+  status: text('status', { enum: ['draft', 'published', 'archived'] }).notNull().default('draft'),
+  sortOrder: integer('sort_order').notNull().default(0),
+  version: integer('version').notNull().default(1),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+});
+
+export const letterBodies = pgTable('letter_bodies', {
+  letterId: uuid('letter_id').primaryKey().references(() => letters.id, { onDelete: 'cascade' }),
+  bodySealed: text('body_sealed').notNull(),
+});
+
+export const futureEntries = pgTable('future_entries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  kind: text('kind', { enum: ['promise', 'place', 'plan', 'dream', 'blank'] }).notNull(),
+  title: text('title').notNull(),
+  noteSealed: text('note_sealed'),
+  targetDate: date('target_date'),
+  targetPrecision: text('target_precision', { enum: ['day', 'month', 'year', 'approx'] }).notNull().default('year'),
+  status: text('status', { enum: ['draft', 'unlit', 'arrived', 'archived'] }).notNull().default('draft'),
+  arrivedMemoryId: uuid('arrived_memory_id').references(() => memories.id, { onDelete: 'set null' }),
+  sortOrder: integer('sort_order').notNull().default(0),
+  version: integer('version').notNull().default(1),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const favorites = pgTable('favorites', {
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  memoryId: uuid('memory_id').references(() => memories.id, { onDelete: 'cascade' }),
+  letterId: uuid('letter_id').references(() => letters.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+});

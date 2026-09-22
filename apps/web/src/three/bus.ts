@@ -26,6 +26,7 @@ export type EngineCommand =
   | { type: 'travelTo'; u: number } // 0 = oldest, 1 = Frontier
   | { type: 'setTier'; tier: QualityTier }
   | { type: 'setReducedMotion'; enabled: boolean }
+  | { type: 'audioToggle'; enabled: boolean }
   | { type: 'enterLamp' }
   | { type: 'exitLamp' }
   | { type: 'rest' } // Release GPU resources, fade to black
