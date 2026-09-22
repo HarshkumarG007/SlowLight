@@ -1,10 +1,12 @@
-import React from 'react';
+import { WorldCanvas } from '../three/WorldCanvas.js';
 
 export function App() {
   return (
-    <div className="veil-placeholder">
-      <h1>Slow Light</h1>
-      <p>System initialized.</p>
-    </div>
+    <>
+      <WorldCanvas />
+      <div className="veil-placeholder" style={{ position: 'relative', zIndex: 1, pointerEvents: 'none', color: 'white', padding: 20 }}>
+        <h1 style={{ pointerEvents: 'auto' }}>Slow Light</h1>
+      </div>
+    </>
   );
 }
