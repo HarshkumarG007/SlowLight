@@ -89,4 +89,21 @@ export async function authRoutes(app: FastifyInstance) {
       return reply.send({ userId: session.userId, kind: session.kind });
     }
   });
+
+  createSecureRoute(app, {
+    method: 'POST',
+    url: '/api/auth/logout',
+    auth: 'public', // anyone can logout
+    policy: 'allow',
+    handler: async (request, reply) => {
+      reply.clearCookie('__Host-sl_sid', {
+        path: '/',
+        secure: true,
+        httpOnly: true,
+        sameSite: 'strict'
+      });
+      reply.header('Clear-Site-Data', '"cache", "cookies", "storage", "executionContexts"');
+      return reply.send({ success: true });
+    }
+  });
 }

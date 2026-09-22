@@ -14,6 +14,7 @@ import { letterRoutes } from './routes/letters.routes.js';
 import { archiveRoutes } from './routes/archive.routes.js';
 import { futureRoutes } from './routes/future.routes.js';
 import { adminRoutes } from './routes/admin.routes.js';
+import { securityRoutes } from './routes/security.routes.js';
 
 const app = fastify({
   logger: logger,
@@ -43,7 +44,9 @@ app.register(helmet, {
       objectSrc: ["'none'"],
       mediaSrc: ["'self'", 'https://*.amazonaws.com'],
       frameAncestors: ["'none'"],
-      formAction: ["'self'"]
+      formAction: ["'self'"],
+      requireTrustedTypesFor: ["'script'"],
+      reportUri: '/api/v1/security/csp-report'
     }
   },
   hsts: {
@@ -82,6 +85,7 @@ const start = async () => {
     app.register(archiveRoutes);
     app.register(futureRoutes);
     app.register(adminRoutes);
+    app.register(securityRoutes);
 
     await app.listen({ port: env.PORT, host: '0.0.0.0' });
     app.log.info(`Server listening on port ${env.PORT}`);

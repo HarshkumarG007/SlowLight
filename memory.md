@@ -3,10 +3,10 @@ The assistant reads this at the start of every task and appends to it at the end
 
 ## 1. Current status
 - **Date:** 2026-09-22
-- **Workflow stage:** Phase 7 (Admin) Implementation Complete
-- **Current phase / task:** Phase 7 complete
-- **Last completed task:** T7.4 Admin Door CLI Script
-- **Next task:** Phase 8 (Security Hardening)
+- **Workflow stage:** Phase 8 (Security Hardening) Implementation Complete
+- **Current phase / task:** Phase 8 complete
+- **Last completed task:** T8.5 CI/CD Security Baseline
+- **Next task:** Phase 9 (Load Testing & Final Launch)
 - **Blockers:** none
 - **Open questions for the Author (must answer before listed phase):**
   - Domain name — needed before Phase 2 (WebAuthn RP ID is origin-bound)
@@ -100,6 +100,7 @@ New inputs, boundaries, secrets, or log lines introduced per task, and how each 
 ## 10. Session log (newest first)
 | Date | Task | What changed | Evidence (tests/commands) | Follow-ups |
 |---|---|---|---|---|
+| 2026-09-22 | Phase 8 | Implemented Trusted Types, CSP report route, `Clear-Site-Data` on logout, cryptographic audit log anchoring, key rotation drill script, and GitHub Actions security baseline. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed natively. | Start Phase 9 |
 | 2026-09-22 | Phase 7 | Created standalone Admin SPA (Vite MPA), implemented Content Editor, Uploader, Security Panel components, added guarded `admin.routes.ts`, and `admin-door` CLI stub. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed natively. | Start Phase 8 |
 | 2026-09-22 | Phase 6 | Implemented MediaViewer, MediaAsset with URL refresh logic, AudioSystem for ambience, and updated worker stub to return variants. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed natively. | Start Phase 7 |
 | 2026-09-22 | Phase 5 | Completed Phase 5 Memory System (DB schema, XState machine, API routes, SL-Text parser, UI components). | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed. | Start Phase 6 |
