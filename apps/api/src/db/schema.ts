@@ -1,4 +1,21 @@
-import { pgTable, uuid, text, timestamp, boolean, bigint, integer, bytea, smallint, jsonb } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  timestamp,
+  boolean,
+  bigint,
+  integer,
+  smallint,
+  jsonb,
+  primaryKey,
+  customType,
+} from 'drizzle-orm/pg-core';
+
+// bytea is not directly exported; define a custom type mapping to Buffer
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({
+  dataType() { return 'bytea'; },
+});
 
 export const users = pgTable('users', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -82,10 +99,77 @@ export const recoveryCodes = pgTable('recovery_codes', {
   usedAt: timestamp('used_at', { withTimezone: true }),
 });
 
-export const rateLimits = pgTable('rate_limits', {
-  key: text('key').notNull(),
-  windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
-  count: integer('count').notNull().default(0),
-}, (t) => ({
-  pk: t.primaryKey(), // We'll manually handle the compound key if necessary
-}));
+export const rateLimits = pgTable(
+  'rate_limits',
+  {
+    key: text('key').notNull(),
+    windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+    count: integer('count').notNull().default(0),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.key, t.windowStart] }) }),
+);
+
+// ===== Crypto =====
+
+export const keyRegistry = pgTable('key_registry', {
+  kid: text('kid').primaryKey(),
+  purpose: text('purpose').notNull().default('sealed'),
+  wrappedDek: bytea('wrapped_dek').notNull(),
+  kmsKeyId: text('kms_key_id').notNull(),
+  status: text('status', { enum: ['active', 'retired'] }).notNull().default('active'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  retiredAt: timestamp('retired_at', { withTimezone: true }),
+});
+
+// ===== Media =====
+
+export const mediaAssets = pgTable('media_assets', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  kind: text('kind', { enum: ['image', 'video', 'audio'] }).notNull(),
+  status: text('status', {
+    enum: ['uploading', 'processing', 'ready', 'failed', 'quarantined'],
+  })
+    .notNull()
+    .default('uploading'),
+  mimeDetected: text('mime_detected'),
+  bytes: bigint('bytes', { mode: 'number' }),
+  checksumSha256: bytea('checksum_sha256'),
+  width: integer('width'),
+  height: integer('height'),
+  durationMs: integer('duration_ms'),
+  lqip: text('lqip'),          // tiny inline base64 placeholder ≤ 2 KB
+  altSealed: text('alt_sealed'),
+  variants: jsonb('variants').notNull().default([]),
+  vaultKey: text('vault_key'), // original in vault bucket; never served
+  capturedAt: timestamp('captured_at', { withTimezone: true }),
+  errorCode: text('error_code'),
+  uploaderId: uuid('uploader_id').references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+});
+
+export const memoryAssets = pgTable(
+  'memory_assets',
+  {
+    memoryId: uuid('memory_id').notNull(),
+    assetId: uuid('asset_id')
+      .notNull()
+      .references(() => mediaAssets.id, { onDelete: 'restrict' }),
+    position: integer('position').notNull(),
+    captionSealed: text('caption_sealed'),
+    isCover: boolean('is_cover').notNull().default(false),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.memoryId, t.assetId] }) }),
+);
+
+export const letterAssets = pgTable(
+  'letter_assets',
+  {
+    letterId: uuid('letter_id').notNull(),
+    assetId: uuid('asset_id')
+      .notNull()
+      .references(() => mediaAssets.id, { onDelete: 'restrict' }),
+    position: integer('position').notNull(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.letterId, t.assetId] }) }),
+);

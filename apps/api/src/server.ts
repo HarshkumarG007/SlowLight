@@ -5,6 +5,9 @@ import { env } from './config/env.js';
 import { logger } from './observability/logger.js';
 import fs from 'node:fs';
 import { authRoutes } from './routes/auth.routes.js';
+import { buildKeyRing } from './crypto/keyring.js';
+import { LocalKeyService, ensureLocalDevKey } from './crypto/localKeyService.js';
+import { mediaRoutes } from './routes/media.routes.js';
 
 const app = fastify({
   logger: logger,
@@ -58,6 +61,16 @@ app.get('/health', async () => {
 
 const start = async () => {
   try {
+    // Boot the key ring before accepting traffic.
+    // In production this calls KMS; in dev it uses LocalKeyService.
+    if (env.NODE_ENV !== 'production') {
+      await ensureLocalDevKey();
+    }
+    await buildKeyRing(LocalKeyService);
+
+    app.register(authRoutes);
+    app.register(mediaRoutes);
+
     await app.listen({ port: env.PORT, host: '0.0.0.0' });
     app.log.info(`Server listening on port ${env.PORT}`);
   } catch (err) {
