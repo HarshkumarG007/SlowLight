@@ -128,7 +128,37 @@ async function signUrl(objectKey: string, ttlSeconds: number): Promise<string> {
     return getSignedUrl(s3, cmd, { expiresIn: ttlSeconds });
   }
 
-  // Production path (Phase 11): CloudFront signed URL
-  // TODO: load private key from Secrets Manager, sign with canned policy
-  throw new Error('CLOUDFONT_SIGNING_NOT_IMPLEMENTED: deploy via Phase 11');
+  // Production path: CloudFront signed URL using canned policy
+  if (env.CLOUDFONT_DOMAIN && env.CLOUDFONT_KEY_PAIR_ID && env.CLOUDFONT_PRIVATE_KEY) {
+    const expires = Math.floor(Date.now() / 1000) + ttlSeconds;
+    const url = `https://${env.CLOUDFONT_DOMAIN}/${objectKey}`;
+    const policy = JSON.stringify({
+      Statement: [
+        {
+          Resource: url,
+          Condition: {
+            DateLessThan: { 'AWS:EpochTime': expires },
+          },
+        },
+      ],
+    });
+
+    const crypto = await import('node:crypto');
+    const signer = crypto.createSign('RSA-SHA1');
+    signer.update(policy);
+    const signature = signer
+      .sign(env.CLOUDFONT_PRIVATE_KEY, 'base64')
+      .replace(/\+/g, '-')
+      .replace(/=/g, '_')
+      .replace(/\//g, '~');
+
+    return `${url}?Expires=${expires}&Signature=${signature}&Key-Pair-Id=${env.CLOUDFONT_KEY_PAIR_ID}`;
+  }
+
+  // Fallback: S3 presigned URL for staging / non-CloudFront environments
+  const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
+  const { getSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+  const s3 = new S3Client({ region: 'ap-south-1' });
+  const cmd = new GetObjectCommand({ Bucket: 'sl-media', Key: objectKey });
+  return getSignedUrl(s3, cmd, { expiresIn: ttlSeconds });
 }

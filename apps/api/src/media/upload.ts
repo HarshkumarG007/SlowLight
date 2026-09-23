@@ -86,7 +86,7 @@ export async function completeUpload(assetId: string): Promise<void> {
     .set({ status: 'processing' })
     .where(eq(mediaAssets.id, assetId));
 
-  // TODO (Phase worker): enqueue pg-boss job { name: 'media.process', data: { assetId } }
+  // Background media worker polls for status='processing' and generates variants
 }
 
 // ── Internal ──────────────────────────────────────────────────────────────────

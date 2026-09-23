@@ -5,6 +5,9 @@ const envSchema = z.object({
   PORT: z.string().transform(Number).default('3000'),
   DATABASE_URL: z.string().url().default('postgresql://postgres:postgres@localhost:5432/slowlight'),
   ADMIN_DOOR_IP: z.string().optional(),
+  CLOUDFONT_DOMAIN: z.string().optional(),
+  CLOUDFONT_KEY_PAIR_ID: z.string().optional(),
+  CLOUDFONT_PRIVATE_KEY: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
