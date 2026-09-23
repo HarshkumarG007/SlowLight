@@ -599,6 +599,556 @@ Building a highly secure, cinematic application required navigating severe trade
 
 ---
 
+## 📐 Part V: System Architecture & Sequence Flows (Phase-by-Phase Deep Dives)
+
+Slow Light's architecture is a testament to uncompromising security and performance. To provide a true "glass-box" view of the system, the following sequence diagrams detail the exact cryptographic, data, and execution flows for **every single phase of the application's development lifecycle** (Phases 0 through 12).
+
+---
+
+### Phase 0: Architecture & Infrastructure Provisioning
+*(Zero Long-Lived Credentials, OIDC IAM Federation & Immutable CMKs)*
+
+Before writing application code, Phase 0 establishes the cryptographic bedrock. Infrastructure is provisioned via Terraform using ephemeral GitHub Actions OIDC federation, eliminating hardcoded AWS secrets. Customer Master Keys (CMKs) are generated with deletion protection and strict key policies.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Dev as Author / SCM (Git)
+    participant CI as GitHub Actions CI
+    participant IAM as AWS IAM (OIDC Provider)
+    participant TF as Terraform Engine
+    participant KMS as AWS KMS & S3
+    
+    Dev->>CI: Push infrastructure commits to main branch
+    CI->>IAM: Request short-lived STS credentials via OIDC token
+    Note over IAM: Validates repository, branch, and signature
+    IAM-->>CI: Issue scoped temporary IAM role credentials (1h TTL)
+    CI->>TF: Execute terraform plan / apply
+    TF->>KMS: Acquire S3 remote state lock via DynamoDB
+    TF->>KMS: Provision CMKs (alias/slowlight-sealed, media, vault)
+    Note over KMS: Enforces key rotation & deletion locks
+    TF->>KMS: Provision S3 buckets with S3 Block Public Access
+    TF-->>CI: Infrastructure state locked & verified
+    CI-->>Dev: Automated pipeline green; zero secrets stored in CI
+```
+
+**Architectural Rationale:** By refusing to generate long-lived AWS Access Keys, the blast radius of any compromised developer machine or CI secret leakage is reduced to zero.
+
+---
+
+### Phase 1: Foundation & PostgreSQL Row-Level Security (RLS)
+*(Strict Tenant Isolation & Query-Level Boundary Enforcement)*
+
+The Fastify backend never trusts client input. Every inbound API request passes through the `withActor` middleware, which validates session credentials and injects PostgreSQL configuration variables (`SET LOCAL`) to enforce database-level Row-Level Security.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Browser as Client Browser (Veil)
+    participant API as Fastify API Server
+    participant Middleware as withActor Middleware
+    participant Drizzle as Drizzle ORM
+    participant DB as PostgreSQL (RLS Engine)
+    
+    Browser->>API: HTTP Request with __Host-sl_sid Cookie
+    API->>Middleware: Intercept & inspect session cookie
+    Middleware->>DB: Validate SHA-256 token hash & expiration
+    DB-->>Middleware: Return user record (id, role='recipient')
+    Middleware->>DB: SET LOCAL role = 'slowlight_app'
+    Middleware->>DB: SET LOCAL request.jwt.claim.sub = 'usr_...'
+    API->>Drizzle: Execute query: SELECT * FROM memories
+    Drizzle->>DB: Forward SQL statement
+    Note over DB: Postgres RLS kernel evaluates USING policy:<br/>(author_id = current_setting(...) OR published_at <= NOW())
+    DB-->>Drizzle: Return only permitted rows (unauthorized rows silently stripped)
+    Drizzle-->>API: Typed memory entity array
+    API-->>Browser: 200 OK (Clean payload; unauthorized objects yield 404)
+```
+
+**Architectural Rationale:** Even if an application developer writes a buggy query like `SELECT * FROM memories` without a `WHERE` clause, the Postgres RLS kernel prevents data leakage at the database engine level. Unauthorized rows return 404 (never 403), preventing attacker resource enumeration.
+
+---
+
+### Phase 2: Authentication & WebAuthn Passkeys
+*(Zero-Password Biometric Auth & Replay-Protected Attestation)*
+
+Slow Light has no passwords, no reset emails, and no usernames to enumerate. Authentication is strictly biometric using the FIDO2/WebAuthn standard backed by physical Secure Enclaves or YubiKeys.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Browser as Recipient Browser (WebAuthn)
+    participant Edge as CloudFront / WAF
+    participant API as Fastify Auth API
+    participant DB as PostgreSQL DB
+    
+    Browser->>Edge: POST /api/v1/auth/passkey/options
+    Edge->>API: Forward request (rate-limited by IP prefix)
+    API->>API: Generate 32-byte cryptographically secure challenge
+    API->>DB: INSERT INTO auth_challenges (TTL = 120s)
+    API-->>Browser: PublicKeyCredentialRequestOptions
+    Note over Browser: Prompt FaceID / TouchID / Windows Hello<br/>navigator.credentials.get()
+    Browser->>Browser: Sign challenge using hardware private key
+    Browser->>API: POST /api/v1/auth/passkey/verify (Assertion)
+    API->>DB: SELECT challenge WHERE consumed = false
+    API->>API: Verify ECDSA signature against stored public key
+    API->>API: Verify RP ID, origin, and increment counter (prevents replay)
+    API->>DB: UPDATE auth_challenges SET consumed = true
+    API->>DB: INSERT INTO sessions (token_hash, expires_at)
+    API-->>Browser: Set-Cookie: __Host-sl_sid (HttpOnly, Secure, SameSite=Strict)
+```
+
+**Architectural Rationale:** Passkeys are cryptographically bound to the exact origin (`slowlight.love`). Phishing sites cannot relay credentials because the browser signs the authentic domain name directly in hardware.
+
+---
+
+### Phase 3: Private Storage & KMS Envelope Encryption
+*(Air-Gapped Media Quarantine & Server-Side Envelope Sealing)*
+
+All personal media and text are encrypted using two-tier envelope encryption. File uploads bypass the application server entirely, landing directly in an isolated quarantine bucket before automated virus scanning and metadata stripping.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Admin as Author Admin
+    participant API as Fastify API
+    participant S3Q as S3 Quarantine Bucket
+    participant Worker as Media Worker (ECS Fargate)
+    participant KMS as AWS KMS (CMK)
+    participant S3V as S3 Media Vault Bucket
+    
+    Admin->>API: POST /admin/media/uploads {mime, bytes, sha256}
+    API-->>Admin: Presigned S3 POST URL (strict policy conditions)
+    Admin->>S3Q: Direct binary upload to quarantine bucket
+    Admin->>API: POST /admin/media/uploads/:id/complete
+    API->>Worker: Enqueue processing task (ECS RunTask)
+    Worker->>S3Q: Download raw binary into sandboxed memory
+    Worker->>Worker: ClamAV anti-malware scan & ExifTool GPS stripping
+    Worker->>KMS: GenerateDataKey(KeyId="alias/slowlight-media")
+    KMS-->>Worker: Plaintext DEK + Ciphertext DEK
+    Worker->>Worker: Encrypt asset with AES-256-GCM using Plaintext DEK
+    Worker->>Worker: Securely zero Plaintext DEK from RAM
+    Worker->>S3V: Upload encrypted asset + Ciphertext DEK envelope
+    Worker->>API: Mark asset status = 'ready' in DB
+```
+
+**Architectural Rationale:** The API never handles multi-gigabyte media streams directly, preserving compute resources. Media files are sanitised in an ephemeral worker sandbox, stripping sensitive EXIF GPS locations before persistent storage.
+
+---
+
+### Phase 4: Core 3D Engine & Deterministic Celestial Canvas
+*(60fps WebGL Pipeline, mulberry32 PRNG & Memory-Safe Resource Tracking)*
+
+The celestial sky is not an artistic rendering of pre-rendered videos; it is a live, deterministic Three.js WebGL simulation executing directly on the client's GPU.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as React DOM (WorldCanvas)
+    participant XState as XState Machine
+    participant Engine as Three.js Engine (Engine.ts)
+    participant PRNG as mulberry32 PRNG
+    participant Tracker as ResourceTracker
+    participant GPU as WebGL2 / GPU Pipeline
+    
+    Client->>Engine: Initialize WorldCanvas context
+    Engine->>PRNG: Seed generator with deterministic timestamp seed
+    PRNG-->>Engine: Compute stable (x, y, z) star coordinates
+    Engine->>Tracker: Allocate InstancedBufferGeometry & Custom Shaders
+    Tracker->>GPU: Upload starfield vertex buffers
+    loop 60 FPS Render Loop
+        Engine->>Engine: Evaluate Frame Governor (monitor delta-time)
+        alt Frame budget exceeded (>16.6ms)
+            Engine->>Engine: Throttle shader passes / step down visual tier
+        else Frame budget healthy
+            Engine->>GPU: Issue instanced draw call
+        end
+    end
+    Client->>XState: User taps star in viewport
+    XState->>Engine: Command: TRAVEL_TO_COORDINATE(x, y, z)
+    Engine->>GPU: Interpolate camera along cubic Bezier curve rail
+    Client->>Tracker: Unmount canvas / navigate away
+    Tracker->>GPU: Call geometry.dispose(), material.dispose(), release VRAM
+```
+
+**Architectural Rationale:** By decoupling Three.js from React's component render tree and managing allocations via `ResourceTracker`, Slow Light eliminates garbage collection spikes and WebGL memory leaks on constrained mobile devices.
+
+---
+
+### Phase 5: The Memory System & XState Finite State Machine
+*(Deterministic State Transitions & AST SL-Text Parsing)*
+
+To prevent "impossible states" (such as a memory modal opening during a 3D camera travel animation), all user navigation is governed by a formal mathematical XState machine.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User as Recipient Action
+    participant XState as XState Interpreter (machine.ts)
+    participant React as React UI (MemoryPanel)
+    participant Parser as SL-Text Parser
+    participant API as Fastify API
+    
+    User->>XState: Send event: SELECT_MEMORY(id)
+    Note over XState: State: exploring -> unfolding<br/>Locks camera, disables picking, fires audio whoosh
+    XState-->>React: Transition state change
+    React->>API: GET /api/v1/memories/:id
+    API-->>React: Return sealed memory payload
+    React->>Parser: parseSLText(memory.rawContent)
+    Note over Parser: Tokenizes custom syntax, builds AST,<br/>enforces strict no-raw-HTML sanitization
+    Parser-->>React: Sanitized React Component Tree
+    XState->>XState: Camera finishes rail travel (timer / tween done)
+    XState->>XState: Transition: unfolding -> viewing
+    XState-->>React: Open MemoryPanel overlay with focus trap
+    User->>XState: Press Esc / Close Button
+    XState->>XState: Transition: viewing -> returning -> exploring
+```
+
+**Architectural Rationale:** Complex UI states are modeled as a directed graph. There is zero reliance on scattered `boolean` state flags (`isLoading`, `isOpen`), guaranteeing bug-free navigation and seamless accessibility focus management.
+
+---
+
+### Phase 6: Media Experience, Signed URLs & Object URL Lifecycle
+*(Protected Media Streaming with Automated Client Memory Reclamation)*
+
+Decrypted media never hits disk. It is requested on-demand via time-limited CloudFront signed URLs, buffered in memory, and managed via an LRU cache to prevent memory exhaustion.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant UI as MediaViewer Component
+    participant LRU as Object-URL LRU Cache
+    participant API as Fastify API (/media/access)
+    participant Edge as CloudFront CDN (/_m/*)
+    participant S3 as S3 Private Media Bucket
+    
+    UI->>API: POST /api/v1/media/access {assetId, variant: 'display'}
+    Note over API: Checks caller session & RLS relationship
+    API-->>UI: Return RSA-SHA1 Signed URL (TTL = 900 seconds)
+    UI->>Edge: GET /_m/<assetId>/display?Expires=...&Signature=...
+    Edge->>Edge: Validate signature against CloudFront Key Group
+    Edge->>S3: Fetch private asset with OAC authentication
+    S3-->>Edge: Binary stream
+    Edge-->>UI: 200 OK (Cache-Control: private, no-store)
+    UI->>LRU: Register binary blob & generate URL.createObjectURL()
+    alt Total active blob memory > 50 MB
+        LRU->>LRU: Revoke oldest URL via URL.revokeObjectURL()
+    end
+    UI->>UI: Render media in DOM element (<img> or <video>)
+    UI->>LRU: On component unmount: URL.revokeObjectURL() immediately
+```
+
+**Architectural Rationale:** Media URLs are ephemeral (900s TTL). Photos and videos are loaded as DOM elements rather than WebGL textures, preserving GPU memory and allowing screen readers to access descriptive alternative text.
+
+---
+
+### Phase 7: The Admin Door & Privilege Elevation
+*(Cloaked Administration, Step-Up Biometrics & SHA-256 Audit Trail)*
+
+The administration portal is completely invisible to the public. Accessing administrative capabilities requires passing a secret path challenge, followed by Step-Up Biometric elevation for any destructive operation.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Author as Author Admin Browser
+    participant WAF as AWS WAF (IP & Path Filter)
+    participant API as Fastify Admin API
+    participant Audit as Audit Hash Chain Engine
+    participant DB as PostgreSQL DB
+    
+    Author->>WAF: POST /admin/door-knock with pre-shared cryptographic proof
+    WAF->>WAF: Check IP allow-list + proof validation
+    WAF-->>Author: 200 OK (Open transient 15-minute door window)
+    Author->>API: POST /api/admin/auth/passkey (Admin login)
+    API-->>Author: Admin session cookie created
+    Author->>API: POST /api/admin/memories/:id/delete (Destructive Action)
+    Note over API: Step-Up Check: Action requires fresh elevation
+    API-->>Author: 403 Elevation Required (Challenge issued)
+    Author->>Author: Biometric User Verification (UV) via Passkey
+    Author->>API: POST /api/admin/elevation/verify (Assertion)
+    API->>API: Verify assertion; grant 5-minute elevated token
+    Author->>API: POST /api/admin/memories/:id/delete (with Elevation Token)
+    API->>DB: Soft delete memory record in transaction
+    API->>Audit: Append event: memory.delete
+    Note over Audit: Computes immutable SHA-256 chain:<br/>hash_n = SHA-256(hash_{n-1} || action || actor || timestamp)
+    Audit->>DB: INSERT INTO audit_logs (hash, prev_hash, ...)
+    API-->>Author: 200 OK (Audit anchored)
+```
+
+**Architectural Rationale:** Even if an unauthorized party obtains physical access to an active admin computer, any sensitive or destructive modification is gated behind immediate re-biometric authentication.
+
+---
+
+### Phase 8: Security Hardening & Edge Fortress
+*(Trusted Types DOM Enforcement, Isolated Processes & Strict CSP)*
+
+Phase 8 fortifies the client against browser-level threats. The application runs inside an isolated operating process using Cross-Origin-Embedder-Policy (`require-corp`) and strictly enforces W3C Trusted Types to eradicate Cross-Site Scripting (XSS).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Attacker as Adversary / Probe
+    participant Edge as CloudFront Edge / WAF
+    participant Browser as Client Browser (Veil DOM)
+    participant API as Fastify CSP Report API
+    
+    Edge-->>Browser: HTTP 200 with Draconian Security Headers:<br/>Content-Security-Policy: default-src 'self'; script-src 'self' 'require-trusted-types-for'<br/>Cross-Origin-Opener-Policy: same-origin<br/>Cross-Origin-Embedder-Policy: require-corp
+    Note over Browser: Browser creates isolated process space (Spectre mitigation)
+    Attacker->>Browser: Attempt DOM injection: element.innerHTML = payload
+    Note over Browser: Trusted Types Engine blocks operation:<br/>TypeError: Failed to set 'innerHTML': This document requires 'TrustedHTML'
+    Browser->>API: POST /api/v1/csp-report (Automated violation beacon)
+    API->>API: Log security anomaly; alert Author via webhook
+    Attacker->>Edge: Attempt directory traversal: GET /api/v1/../../etc/passwd
+    Edge->>Edge: WAF Core Rule Set intercepts malicious pattern
+    Edge-->>Attacker: 403 Forbidden (Blocked at edge; API never invoked)
+```
+
+**Architectural Rationale:** Modern web security must defend in depth. Trusted Types eliminate DOM XSS at the compiler and runtime level, while COOP/COEP headers isolate renderer processes from shared memory leaks.
+
+---
+
+### Phase 9: Performance Optimization & Subsetting Pipeline
+*(Sub-Second Cold Starts, Brotli Compression & Zero Heap Drift)*
+
+To ensure Slow Light loads instantly over constrained mobile networks, bundle sizes are rigorously audited and font files are stripped of unused glyphs down to minimal payloads.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Build as Build System (Vite + Fonttools)
+    participant S3 as S3 Static Hosting
+    participant CDN as CloudFront CDN
+    participant Mobile as Low-Tier Mobile Device
+    
+    Build->>Build: Execute font subsetting (strip unused glyphs: 2.4MB -> 35KB)
+    Build->>Build: Vite code-splitting: Core Veil (<120KB gz) vs World Canvas
+    Build->>Build: Pre-compress assets with Brotli level 11 (.br)
+    Build->>S3: Deploy immutable versioned chunks (/assets/*)
+    Mobile->>CDN: GET /index.html (Initial page request)
+    CDN-->>Mobile: Deliver Brotli HTML + Critical CSS (LCP <= 1.8s)
+    Note over Mobile: Render login Veil without loading Three.js engine
+    Mobile->>Mobile: User completes Passkey authentication
+    Mobile->>CDN: Dynamic import: import('./WorldCanvas')
+    CDN-->>Mobile: Deliver 3D World chunk on demand
+    Note over Mobile: Baseline memory capped under 150MB; steady 60fps
+```
+
+**Architectural Rationale:** The heavy Three.js engine and 3D assets are never downloaded before authentication. This guarantees maximum page speed for initial authentication and prevents unauthenticated memory waste.
+
+---
+
+### Phase 10: Testing Rigor & Virtual Authenticator Automation
+*(Continuous Integration with Headless WebAuthn & Axe-Core Accessibility)*
+
+Because Slow Light requires biometric passkeys, traditional automated integration tests would fail without human interaction. Phase 10 implements a complete headless test pipeline using Chromium CDP Virtual Authenticators.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CI as GitHub Actions CI
+    participant Playwright as Playwright Test Runner
+    participant CDP as Chromium CDP Session
+    participant WebAuthn as Virtual Authenticator (CTAP2)
+    participant Axe as Axe-Core Accessibility Engine
+    participant API as Fastify Test Server
+    
+    CI->>Playwright: pnpm e2e:run
+    Playwright->>CDP: Attach to Chromium DevTools Protocol
+    CDP->>WebAuthn: WebAuthn.enable()
+    CDP->>WebAuthn: WebAuthn.addVirtualAuthenticator({protocol: 'ctap2', transport: 'internal'})
+    Playwright->>API: Execute user enrollment flow
+    API-->>Playwright: Return registration challenge
+    Playwright->>WebAuthn: Synthetic biometric sign (User Verification = true)
+    WebAuthn-->>Playwright: Valid attestation signature
+    Playwright->>API: Complete registration & verify session
+    Playwright->>Axe: Run automated WCAG 2.2 AA accessibility scan
+    Axe-->>Playwright: Assert 0 serious/critical violations
+    Playwright-->>CI: 100% test pass (94 unit/integration + E2E suites green)
+```
+
+**Architectural Rationale:** Testing security-critical code requires continuous automation. CDP virtual authenticators allow full regression testing of Passkey registration, authentication, counter rollover, and timeout handling in CI without manual hardware taps.
+
+---
+
+### Phase 11: Production Go-Live, Zero-Downtime ECS & Escrow
+*(Blue/Green Deployments, Automated Migrations & Air-Gapped Disaster Recovery)*
+
+Deploying to production requires zero downtime and an unbreakable disaster recovery guarantee. Scheduled jobs create encrypted offline escrow backups, replicated across accounts to prevent complete cloud provider lockouts.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CI as Deployment Pipeline
+    participant ECS as AWS ECS Fargate
+    participant RDS as Amazon RDS PostgreSQL
+    participant Cron as Escrow Worker (Scheduled)
+    participant BackupS3 as Secondary Account S3 (WORM Lock)
+    
+    CI->>ECS: Run one-off task: drizzle-kit migrate (apply schema changes)
+    ECS->>RDS: Execute idempotent schema migrations in transaction
+    RDS-->>ECS: Schema verified
+    CI->>ECS: Update ECS Service with new task definition (Blue/Green)
+    ECS->>ECS: Spin up new container tasks; run ALB health checks
+    ECS->>ECS: Drain traffic from old tasks once health checks pass
+    Cron->>RDS: Daily snapshot: pg_dump encrypted stream
+    Cron->>Cron: Encrypt database dump using air-gapped PGP Public Key
+    Cron->>BackupS3: Replicate sealed archive to secondary AWS Account
+    Note over BackupS3: S3 Object Lock enforces WORM compliance<br/>(Write Once, Read Many; immune to ransomware/deletion)
+```
+
+**Architectural Rationale:** Backups are useless unless protected from compromise. Encrypting backups with an offline PGP key and storing them in an independent AWS account with WORM compliance guarantees recovery even if the primary cloud account is compromised.
+
+---
+
+### Phase 12: Advanced Architectural Extensions (Deep Dives)
+
+Phase 12 builds upon the core foundation to deliver state-of-the-art privacy and streaming extensions. The following diagrams detail each of the five Phase 12 architectural milestones.
+
+#### Phase 12.1: Recipient Sealed Replies Flow
+*(Row-Bound Envelope Encryption for Intimate Correspondence)*
+
+When the Recipient writes a quiet reply to a memory, it is sealed with AES-256-GCM using row-bound Additional Authenticated Data (AAD), ensuring replies cannot be tampered with or swapped between memories.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Recipient as Recipient Browser (Web Client)
+    participant API as Fastify API (/api/v1/replies)
+    participant Crypto as Server Crypto Service
+    participant DB as PostgreSQL (replies table)
+    participant Author as Author Admin (RepliesViewer)
+    
+    Recipient->>API: POST /api/v1/replies {memoryId, body: "I remember..."}
+    Note over API: Validates session, CSRF, and memory accessibility
+    API->>Crypto: sealEnvelope(body, AAD={replyId, memoryId, authorId})
+    Crypto->>Crypto: Generate random 256-bit AES-GCM Key
+    Crypto->>Crypto: Encrypt plaintext body with row-bound AAD
+    Crypto-->>API: Sealed ciphertext payload
+    API->>DB: INSERT INTO replies (id, memory_id, author_id, body_ciphertext)
+    DB-->>API: 201 Created
+    API-->>Recipient: Acknowledged (Stored in sealed vault)
+    Author->>API: GET /api/v1/replies?memoryId=...
+    API->>DB: Fetch sealed replies
+    API->>Crypto: unsealEnvelope(ciphertext, AAD)
+    Crypto-->>API: Decrypted plaintext
+    API-->>Author: Render reply in Admin Portal
+```
+
+---
+
+#### Phase 12.2: Device-Bound Session Credentials (DBSC)
+*(Cryptographic Session Anchoring via Hardware TPM Keys)*
+
+To eliminate session hijacking and cookie theft by malware, DBSC cryptographically binds the session cookie to an non-extractable private key residing in the client device's hardware enclave.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Browser as Browser (WebCrypto / IndexedDB)
+    participant Edge as CloudFront / WAF
+    participant API as Fastify API Server
+    participant DB as PostgreSQL (device_sessions)
+    
+    Browser->>API: POST /api/v1/auth/passkey/verify (Successful Login)
+    API-->>Browser: Set-Cookie: __Host-sl_sid + Header: Sec-Session-Registration
+    Browser->>Browser: Generate non-extractable ECDSA P-256 keypair in IndexedDB
+    Browser->>API: POST /api/auth/dbsc/challenge
+    API-->>Browser: Issue 32-byte cryptographic challenge (120s TTL)
+    Browser->>Browser: Sign challenge using private key via WebCrypto (IEEE P1363 / DER)
+    Browser->>API: POST /api/auth/dbsc/register {publicKey, signature}
+    API->>API: Verify ECDSA signature against public key
+    API->>DB: INSERT INTO device_sessions (session_id, public_key_jwk)
+    API-->>Browser: Session bound to hardware device
+    loop Every Protected API Request
+        Browser->>API: GET /api/v1/memories + Header: Sec-Session-Signature
+        API->>DB: Load bound public key
+        API->>API: Validate signature over current request attributes
+        API-->>Browser: 200 OK (Data returned)
+    end
+```
+
+---
+
+#### Phase 12.3: Sealed Vault v2 True E2EE
+*(Mathematical Zero-Knowledge Client-Side Encryption)*
+
+For ultimate privacy, Phase 12.3 implements a mathematical zero-knowledge pipeline. The server operates as an encrypted blind store; only the Author and Recipient hold the private keys necessary to decrypt letters.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant A as Author Browser (WebCrypto)
+    participant API as API & Postgres DB
+    participant R as Recipient Browser (WebCrypto)
+
+    Note over R: Generates ECDH P-256 Keypair<br/>Stores Private Key in IndexedDB
+    R->>API: POST /api/auth/e2ee/keys (Registers Public JWK)
+    A->>API: GET /api/auth/e2ee/keys (Fetches Recipient Public JWK)
+    Note over A: 1. Generates 256-bit AES-GCM CEK<br/>2. Encrypts plaintext with row-bound AAD<br/>3. Generates Ephemeral ECDH keypair<br/>4. Derives KEK via ECDH + HKDF<br/>5. Wraps CEK via AES-KW<br/>6. Formats v2.e2ee envelope
+    A->>API: Stores v2.e2ee opaque ciphertext in DB
+    R->>API: Fetches memory / letter (gets v2.e2ee string)
+    Note over R: 1. Unpacks Author Ephemeral Public Key<br/>2. Derives KEK using Recipient Private Key<br/>3. Unwraps CEK via AES-KW<br/>4. Decrypts AES-GCM ciphertext + checks AAD
+    Note over R: Renders cleartext in DOM with E2EE badge
+```
+
+---
+
+#### Phase 12.4: Adaptive HLS Video Streaming
+*(Multi-Bitrate Video Transcoding & Fragmented Signed Streaming)*
+
+4K cinematic memories are transcoded by an air-gapped FFmpeg worker into an RFC 8216 multi-bitrate HLS ladder, delivered via signed CloudFront segments.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant W as Web Client (MediaAsset / HLSPlayer)
+    participant S as API Server (/api/v1/media/access)
+    participant M as Media Worker (ffmpeg pipeline)
+    participant C as Media S3 Bucket & CloudFront (/_m/*)
+
+    Note over M: Video Processing Triggered
+    M->>M: Generates 1080p, 720p, 480p, 360p variants
+    M->>M: Generates master.m3u8 & variant playlists
+    M->>C: Uploads segments & manifests (SSE-KMS)
+    M->>S: Updates media_assets (variant: 'hls')
+    W->>S: POST /api/v1/media/access { assetId, variant: 'hls' }
+    Note over S: Verifies session & RLS visibility
+    S-->>W: Returns signed CloudFront URL for master.m3u8 (TTL 900s)
+    W->>C: GET /_m/.../master.m3u8 (with signed signature)
+    C-->>W: Master playlist with bitrate tiers
+    Note over W: Adaptive playback (Safari native / quality switcher)
+```
+
+---
+
+#### Phase 12.5: Privacy-Preserving Offline Map View
+*(Equirectangular Projection & Ephemeral Coordinate Coarsening)*
+
+To display the journey of shared memories across the world without leaking physical locations to commercial tracking networks (Google Maps/Mapbox), Phase 12.5 executes an offline, coordinate-coarsened SVG map projection.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as React Client (MapView.tsx)
+    participant API as Fastify API (/api/v1/map)
+    participant DB as PostgreSQL (memories)
+    participant Shared as Shared Geometry Engine (map.ts)
+    
+    Client->>API: GET /api/v1/map
+    API->>DB: Query visible memories with location data
+    DB-->>API: Raw memory records with exact GPS coordinates
+    loop For each memory pin
+        API->>API: Coarsen coordinates to +/- 0.1 deg (~11 km blur)
+        API->>API: Strip precise timestamps & device metadata
+    end
+    API-->>Client: 200 OK (Sanitized coordinate pins array)
+    Client->>Shared: projectCoordinatesToSVG(lat, lon, width, height)
+    Shared-->>Client: Compute SVG (x, y) canvas coordinates
+    Client->>Client: Render offline inline SVG world map with starlight pins
+    Note over Client: Zero network requests to Google Maps or Mapbox<br/>Complete immunity against third-party location tracking
+```
+
+---
+
 ## 📚 Documentation Index
 
 Slow Light is meticulously documented. The `docs/` folder is the ultimate source of truth, dictating behavior, styling, and security guardrails.
