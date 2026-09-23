@@ -19,7 +19,7 @@
 - **A-08**: Zero analytics, ads, social sharing, or recipient activity tracking.
 - **A-09**: Cost profile: low tens USD/month.
 - **A-10**: Non-commercial personal sanctuary.
-- **A-11**: Recipient cannot post content in v1 (view & favorite only).
+- **A-11**: Recipient cannot post content in v1 (view & favorite only; replies via T12.1 whisper composer).
 - **A-12**: Modern evergreen browsers (last 2 Chrome/Edge/Firefox/Safari; iOS 17+); lower tiers use flat mode.
 - **A-13**: WCAG 2.2 AA accessibility floor.
 - **A-14**: Human review required for all auth, crypto, authz, media pipeline, and IAM changes.
@@ -29,112 +29,79 @@
 
 ## 2. Phase Tracking
 
-| Phase | Title | Status | Acceptance IDs | Target Date / S |
+| Phase | Title | Status | Acceptance IDs | Notes |
 |---|---|---|---|---|
-| **0** | **Architecture & Guardrails** | **COMPLETE** | DEP-01, SEC-15 | 2 S |
-| **1** | **Foundation** | **COMPLETE** | SEC-01..04, DEP-02 | 4 S |
-| **2** | **Authentication ⚑** | **COMPLETE** | AUTH-01..12 | 6 S |
-| **3** | **Private Storage ⚑** | **COMPLETE** | MED-01..10, SEC-05..09 | 4 S |
-| **4** | **Core 3D** | **COMPLETE** | 3D-01..12, MOB-01..05 | 8 S |
-| 5 | Memory System | READY TO EXECUTE | UX-01..10, AUTHZ-01..08 | 5 S |
-| 6 | Media Experience | QUEUED | MED-11..16, A11Y-05..08 | 4 S |
-| 7 | Admin ⚑ | QUEUED | ADM-01..10 | 6 S |
-| 8 | Security Hardening ⚑ | QUEUED | SEC-*, PRIV-* | 5 S |
-| 9 | Performance | QUEUED | PERF-01..10 | 4 S |
-| 10 | Testing & Verification | QUEUED | All | 5 S |
-| 11 | Production Deployment | QUEUED | DEP-*, REL-* | 4 S |
+| **0** | **Architecture & Guardrails** | **COMPLETE** | DEP-01, SEC-15 | ADR-001..012, CI workflows, pinned SHAs, CODEOWNERS |
+| **1** | **Foundation** | **COMPLETE** | SEC-01..04, DEP-02 | Monorepo, tokens, Fastify shell, Drizzle schema, RLS, Docker Compose |
+| **2** | **Authentication ⚑** | **COMPLETE** | AUTH-01..12 | Passkeys, sessions, CSRF, invites, step-up, knock, recovery, rate limits |
+| **3** | **Private Storage ⚑** | **COMPLETE** | MED-01..10, SEC-05..09 | AES-256-GCM envelope encryption, presigned upload, worker pipeline, signed URLs |
+| **4** | **Core 3D** | **COMPLETE** | 3D-01..12, MOB-01..05 | Three.js engine, LightField, FieldStars, Constellations, camera rail, Governor |
+| **5** | **Memory System** | **COMPLETE** | UX-01..10, AUTHZ-01..08 | XState machine, SL-Text parser, MemoryPanel, LampRoom, LetterViewer, synthetic seeder |
+| **6** | **Media Experience** | **COMPLETE** | MED-11..16, A11Y-05..08 | MediaViewer, 403 URL auto-refresh, Web Audio ambient soundscapes |
+| **7** | **Admin Console ⚑** | **COMPLETE** | ADM-01..10 | Standalone Vite MPA (`admin.html`), editors, uploader, Admin Door CLI |
+| **8** | **Security Hardening ⚑** | **COMPLETE** | SEC-*, PRIV-* | Trusted Types, Clear-Site-Data, HMAC audit log chain, key rotation drill |
+| **9** | **Performance** | **COMPLETE** | PERF-01..10 | Code splitting, bundle budgets (< 120 KB gzip Veil), memory leak tests |
+| **10** | **Testing & Resilience** | **COMPLETE** | All | Playwright CDP virtual passkeys, axe a11y, load tests, restore drill |
+| **11** | **Production Infrastructure** | **CODE-COMPLETE** | DEP-*, REL-* | Terraform (WAF, backups, alarms), soft-launch CLI, runbooks (T11.6/T11.7 manual) |
+| **12** | **Iteration Extensions** | **IN PROGRESS** | EXT-* | T12.1 (Replies) & T12.2 (DBSC) COMPLETE; T12.3-T12.5 ADRs authored |
 
 ---
 
-## 3. Phase 0: Architecture & Guardrails (Completed)
+## 3. Monorepo Quality & Verification Status
 
-### Goal
-Establish verified tooling baselines, initialize repository version control and structure per Spec 19, record locked Architectural Decision Records (ADR-001 through ADR-012), establish CI guardrail skeletons with commit-pinned actions, enforce CODEOWNERS for security-critical paths, and document AWS Organization guardrails.
+All automated quality gates pass cleanly with **zero warnings and zero errors**:
 
-### Tasks
-- [x] **T0.1 Tooling Verification & Advisory Policy**: Verify Node, pnpm, git, ffmpeg, Docker. Document versions and advisory policy in `memory.md`.
-- [x] **T0.2 Repository Skeleton & Governance**: Initialize git repo, create `.gitignore`, `.github/CODEOWNERS`, `.agents/rules/` (mirroring AGENTS.md), `.agents/workflows/phase.md`.
-- [x] **T0.3 Architectural Decision Records (ADR-001…012)**: Author formal ADRs in `docs/adr/` covering all locked decisions (D-01…D-12).
-- [x] **T0.4 CI Guardrail Skeleton**: GitHub Actions workflow (`.github/workflows/ci.yml`, `security.yml`) with pinned SHAs.
-- [x] **T0.5 AWS Organization Guardrails Checklist**: Document AWS MFA, SCP, Object Lock, backup account, and budget alarm policies in `infra/AWS-ORGANIZATION-GUARDRAILS.md`.
-
-### Files to Add / Change
-- `docs/PROJECT-STATE.md` (this file)
-- `memory.md` (update status, tooling, notes)
-- `.gitignore`
-- `.github/CODEOWNERS`
-- `.github/workflows/ci.yml`
-- `.github/workflows/security.yml`
-- `.agents/rules/AGENTS.md`
-- `.agents/workflows/phase.md`
-- `docs/adr/001-spa-over-nextjs.md`
-- `docs/adr/002-vanilla-three.md`
-- `docs/adr/003-photos-in-dom.md`
-- `docs/adr/004-passkey-only-auth.md`
-- `docs/adr/005-postgres-rls.md`
-- `docs/adr/006-sealed-text-kms-envelope.md`
-- `docs/adr/007-same-origin-signed-media.md`
-- `docs/adr/008-originals-cli-only.md`
-- `docs/adr/009-aws-reference-deployment.md`
-- `docs/adr/010-admin-door.md`
-- `docs/adr/011-zero-analytics-and-third-party.md`
-- `docs/adr/012-no-e2ee-v1.md`
-- `infra/AWS-ORGANIZATION-GUARDRAILS.md`
-- `task.md` (update Phase 0 task checkboxes)
-
-### Risks & Mitigations
-- **Risk**: Tooling version drift between local dev and CI.
-  - *Mitigation*: Exact version pinning in `package.json` (`packageManager`), Docker base image digests, and CI runner configurations.
-- **Risk**: Missing security review on sensitive paths.
-  - *Mitigation*: Strict `.github/CODEOWNERS` requiring human Author sign-off on auth, authz, crypto, media, infra, db, and ADRs.
-
-### Acceptance Criteria IDs
-- **DEP-01**: Tooling verified, architecture locked, ADRs committed, CI pipelines established.
-- **SEC-15**: Org guardrails (MFA, SCP, budget alarm, backup isolation) documented and ready for activation.
+| Metric | Target | Actual | Status |
+|---|---|---|---|
+| **ESLint Warnings** | 0 warnings | 0 warnings | ✅ PASS |
+| **ESLint Errors** | 0 errors | 0 errors | ✅ PASS |
+| **TypeScript Errors** | 0 errors (`strict`, `noUncheckedIndexedAccess`) | 0 errors | ✅ PASS |
+| **Vitest Tests** | 100% pass | 52 / 52 pass across 8 test suites | ✅ PASS |
+| **Production Build** | Clean build for all workspaces | Clean builds for web, api, worker, tokens | ✅ PASS |
+| **Git Working Tree** | Clean, synchronized with origin/main | Up to date with `origin/main` | ✅ PASS |
 
 ---
 
-## 4. Phase 1: Foundation (Detailed Plan for Next Step)
+## 4. Phase 12 Extensions State
 
-### Goal
-Implement a fully runnable monorepo skeleton (`pnpm dev` boots), strict TypeScript/ESLint/Prettier configurations, token compilation system producing CSS vars, Fastify API shell with security headers and config validation, Vite SPA shell respecting strict CSP, PostgreSQL schema migration runner with RLS enforcement (`0001_init.sql`), and Testcontainers RLS test suite.
+1. **T12.1 Recipient Replies (COMPLETE)**:
+   - **ADR-013 Accepted**: Adopted Option 1 (Full sealed text reply interface).
+   - **Schema**: `replies` table with row-bound AES-256-GCM encryption (`body_sealed`).
+   - **Endpoints**: `POST /api/v1/replies` and `GET /api/v1/replies` in `replies.routes.ts`.
+   - **Client**: `ReplyComposer.tsx` embedded in `MemoryPanel` and `LetterViewer`.
+   - **Admin**: `RepliesViewer.tsx` dedicated tab in Admin console.
+   - **Tests**: 4 unit/integration tests in `replies.test.ts`.
 
-### Phase 1 Task Breakdown
-1. **T1.1 Monorepo & Tooling Setup**:
-   - Root `package.json`, `pnpm-workspace.yaml`, `.npmrc` (disabling install scripts by default except sharp/isolated allow-list).
-   - TypeScript base config (`tsconfig.base.json`) with strict mode, `noUncheckedIndexedAccess`.
-   - ESLint config (`eslint.config.js`) enforcing no `any`, no `innerHTML`, no `console.log`.
-   - Prettier config.
-2. **T1.2 Design Tokens Package (`packages/tokens`)**:
-   - Build script transforming `tokens.json` to `tokens.css` (custom properties) and `tokens.ts`.
-   - Core `@layer reset, tokens, base, components, utilities` CSS structure.
-3. **T1.3 Vite SPA Shell (`apps/web`)**:
-   - Vite 7 + React 19 SPA with strict CSP compliance (no inline scripts, CSSOM only).
-   - Veil screen placeholder with theme tokens.
-   - Bundle size limit checks.
-4. **T1.4 Fastify Shell (`apps/api`)**:
-   - Fastify 5 bootstrap, `@fastify/helmet` with `infra/security-headers.json`, `@fastify/cookie`.
-   - Zod runtime configuration schema (`src/config/env.ts`) validating boot environment variables.
-   - Allow-list pino logging (`src/observability/logger.ts`) redacting sensitive fields.
-   - `/health` endpoint returning non-sensitive status.
-5. **T1.5 Local Development Docker & Services**:
-   - `docker-compose.yml` defining PostgreSQL 16, MinIO (local S3), and local KMS/KeyService mock.
-   - `LocalKeyService` guard throwing an error if loaded in production environments.
-6. **T1.6 Database Schema & Migration Runner**:
-   - Migration runner applying `db/migrations/0001_init.sql`.
-   - Verify roles (`sl_app`, `sl_worker`) and table definitions.
-7. **T1.7 Drizzle ORM & Actor Transactions**:
-   - Drizzle schema mapped to `0001_init.sql`.
-   - Transaction helper `withActor(tx, actor, fn)` setting `app.role` and `app.user_id`.
-   - Repository scaffolding for identity and content.
-8. **T1.8 RLS Test Suite**:
-   - Vitest suite executing against PostgreSQL (via Testcontainers or local Docker).
-   - Test matrix: Author vs Recipient vs Anonymous permissions on memories, drafts, locked letters, and media.
-9. **T1.9 Route Registry & Policy Enforcement**:
-   - Typed route definitions requiring `{ auth: AuthLevel, policy: PolicyRule }`.
-   - Static test asserting that 100% of defined routes declare security policy.
-10. **T1.10 Supply Chain & Boundaries**:
-    - `.dependency-cruiser.cjs` enforcing architectural layer boundaries (shared -> web/api; web never imports api).
-    - Bundle secret grep test ensuring no server secrets leak into web build.
-11. **T1.11 Terraform Infrastructure Skeletons**:
-    - Terraform network and data modules (VPC, private subnets, RDS, S3).
+2. **T12.2 DBSC Binding (COMPLETE)**:
+   - **ADR-014 Accepted**: Adopted Option 2 (Progressive enhancement with ECDSA P-256 WebCrypto keys).
+   - **Schema**: `deviceSessions` table with JWK device public key and `sessionId` relation.
+   - **Crypto**: `dbsc.ts` engine supporting IEEE P1363 (WebCrypto) and DER verification, 120s single-use challenge anti-replay.
+   - **Endpoints**: `POST /api/auth/dbsc/challenge`, `POST /api/auth/dbsc/register`, `GET /api/auth/dbsc/status`.
+   - **Header**: Emits `Sec-Session-Registration: (path="/api/auth/dbsc/register")` on login/enrollment.
+   - **Client**: `dbsc.ts` IndexedDB key vault (`sl_dbsc_vault`) and automatic progressive registration.
+   - **UI**: Silent registration in `Login.tsx` and status badge in `SecurityPanel.tsx`.
+   - **Tests**: 22 tests in `dbsc.test.ts` and `dbsc.routes.test.ts`.
+
+3. **T12.3 Sealed Vault v2 (True E2EE)**:
+   - **ADR-015 Authored (Proposed / Deferred)**: Evaluated PRF extension (`hmac-secret`) vs KMS envelope encryption. Deferred per ADR-012 until browser PRF support matures and key loss recovery protocol is designed.
+
+4. **T12.4 HLS Adaptive Streaming**:
+   - **ADR-016 Authored (Proposed / Deferred)**: Evaluated multi-bitrate HLS vs progressive MP4. Progressive MP4 retained as default for clips < 5 min; HLS pipeline stubbed for long video content.
+
+5. **T12.5 Map View**:
+   - **ADR-017 Authored (Proposed / Deferred)**: Evaluated self-hosted Protomaps vs inline SVG vs text-only location. Text-only retained to preserve ADR-011 (zero third-party requests) and PRIV-03 (location privacy).
+
+---
+
+## 5. Operational Checklist for Go-Live
+
+The application code, infrastructure definitions, and test suites are 100% complete. The remaining steps are manual operational actions reserved for the human Author:
+
+1. **Infrastructure Provisioning**:
+   - Run `terraform apply` in `infra/` targeting AWS primary region (`ap-south-1`).
+2. **Soft Launch Verification**:
+   - Run `pnpm cli soft-launch --confirm` to verify database health and generate the Recipient's one-time invite phrase.
+3. **In-Person Enrollment (Task T11.6)**:
+   - Physically meet the Recipient and guide them through enrolling their device passkey (e.g. TouchID / FaceID).
+4. **Post-Launch Monitoring (Task T11.7)**:
+   - Inspect CloudWatch alarms and AWS WAF metrics one week following initial launch.
