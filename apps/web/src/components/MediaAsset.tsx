@@ -1,6 +1,6 @@
-import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useMediaAccess } from '../hooks/useMediaAccess';
+import { HLSPlayer } from './HLSPlayer';
 import styles from './MediaViewer.module.css'; // Shared module for Media Components
 
 export interface MediaAssetProps {
@@ -109,15 +109,12 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
         />
       )}
 
-      {src && kind === 'video' && (
-        <video 
-          ref={mediaRef as React.RefObject<HTMLVideoElement>}
-          src={src}
-          className={styles.video}
-          controls
-          playsInline
-          preload="metadata"
-          onError={handleError}
+      {kind === 'video' && (
+        <HLSPlayer
+          assetId={assetId}
+          initialVariant={variant}
+          onError={() => void handleError()}
+          mediaRef={mediaRef as React.RefObject<HTMLVideoElement>}
         />
       )}
 

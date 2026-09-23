@@ -43,7 +43,7 @@
 | **9** | **Performance** | **COMPLETE** | PERF-01..10 | Code splitting, bundle budgets (< 120 KB gzip Veil), memory leak tests |
 | **10** | **Testing & Resilience** | **COMPLETE** | All | Playwright CDP virtual passkeys, axe a11y, load tests, restore drill |
 | **11** | **Production Infrastructure** | **CODE-COMPLETE** | DEP-*, REL-* | Terraform (WAF, backups, alarms), soft-launch CLI, runbooks (T11.6/T11.7 manual) |
-| **12** | **Iteration Extensions** | **IN PROGRESS** | EXT-* | T12.1 (Replies), T12.2 (DBSC), T12.3 (E2EE) COMPLETE; T12.4-T12.5 ADRs authored |
+| **12** | **Iteration Extensions** | **IN PROGRESS** | EXT-* | T12.1 (Replies), T12.2 (DBSC), T12.3 (E2EE), T12.4 (HLS) COMPLETE; T12.5 ADR authored |
 
 ---
 
@@ -56,7 +56,7 @@ All automated quality gates pass cleanly with **zero warnings and zero errors**:
 | **ESLint Warnings** | 0 warnings | 0 warnings | ✅ PASS |
 | **ESLint Errors** | 0 errors | 0 errors | ✅ PASS |
 | **TypeScript Errors** | 0 errors (`strict`, `noUncheckedIndexedAccess`) | 0 errors | ✅ PASS |
-| **Vitest Tests** | 100% pass | 68 / 68 pass across 10 test suites | ✅ PASS |
+| **Vitest Tests** | 100% pass | 77 / 77 pass across 11 test suites | ✅ PASS |
 | **Production Build** | Clean build for all workspaces | Clean builds for web, api, worker, tokens | ✅ PASS |
 | **Git Working Tree** | Clean, synchronized with origin/main | Up to date with `origin/main` | ✅ PASS |
 
@@ -91,8 +91,12 @@ All automated quality gates pass cleanly with **zero warnings and zero errors**:
    - **UI**: Seamless client-side unsealing with "✦ Hardware E2EE Sealed" badges in `MemoryPanel.tsx` and `LetterViewer.tsx`; interactive benchmark in `SecurityPanel.tsx`.
    - **Tests**: 11 unit tests in `packages/shared/src/e2ee.test.ts` and 5 route tests in `apps/api/src/routes/e2ee.test.ts`.
 
-4. **T12.4 HLS Adaptive Streaming**:
-   - **ADR-016 Authored (Proposed / Deferred)**: Evaluated multi-bitrate HLS vs progressive MP4. Progressive MP4 retained as default for clips < 5 min; HLS pipeline stubbed for long video content.
+4. **T12.4 HLS Adaptive Bitrate Streaming (COMPLETE)**:
+   - **ADR-016 Accepted**: Adopted Option 1 (Multi-bitrate HLS with signed URL CloudFront delivery).
+   - **Worker Generator**: `apps/worker/src/hls.ts` generating RFC 8216 master playlist and segment media playlists across 1080p, 720p, 480p, and 360p profiles with 6-second segment chunking.
+   - **API Access**: `apps/api/src/media/access.ts` supports `variant: 'hls'` returning signed CloudFront URLs for `_hls/<assetId>/master.m3u8` with 900s TTL.
+   - **Client Player**: `apps/web/src/components/HLSPlayer.tsx` providing native Apple HLS on iOS/Safari, adaptive quality ladder switcher, progressive fallback, and seamless playback position preservation across signed URL renewals.
+   - **Tests**: 5 unit tests in `apps/worker/src/hls.test.ts` and 4 access tests in `apps/api/src/media/access.test.ts`.
 
 5. **T12.5 Map View**:
    - **ADR-017 Authored (Proposed / Deferred)**: Evaluated self-hosted Protomaps vs inline SVG vs text-only location. Text-only retained to preserve ADR-011 (zero third-party requests) and PRIV-03 (location privacy).

@@ -228,3 +228,60 @@
     bottom: env(safe-area-inset-bottom, var(--spacing-4));
   }
 }
+
+.hlsContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.hlsBadgeBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 800px;
+  padding: 4px 8px;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--color-ink-300, #a0a0a0);
+}
+
+.hlsStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-green-400, #7dbe9c);
+  font-weight: 500;
+}
+
+.hlsQualitySelector {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hlsQualityBtn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--color-ink-300, #bbb);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hlsQualityBtn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+}
+
+.hlsQualityActive {
+  background: rgba(125, 190, 156, 0.25);
+  border-color: var(--color-green-400, #7dbe9c);
+  color: #fff;
+  font-weight: 600;
+}

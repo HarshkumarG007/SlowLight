@@ -27,7 +27,7 @@ const SIGNED_TTL: Record<string, number> = {
   video: 900,
 };
 
-type Variant = 'thumb' | 'display' | 'large' | 'zoom' | 'display-jpg' | '720p' | '1080p' | 'aac' | 'original';
+type Variant = 'thumb' | 'display' | 'large' | 'zoom' | 'display-jpg' | '720p' | '1080p' | 'aac' | 'original' | 'hls';
 
 export interface AccessResult {
   assetId: string;
@@ -64,9 +64,9 @@ export async function resolveMediaAccess(
 
   const ttl = SIGNED_TTL[asset.kind] ?? 90;
 
-  // Build the object key: m/<assetId>/<variant>.<ext>
+  // Build the object key: _hls/<assetId>/master.m3u8 or m/<assetId>/<variant>.<ext>
   const ext = variantExt(asset.kind, variant);
-  const objectKey = `m/${assetId}/${variant}.${ext}`;
+  const objectKey = variant === 'hls' ? `_hls/${assetId}/master.m3u8` : `m/${assetId}/${variant}.${ext}`;
 
   const url = await signUrl(objectKey, ttl);
   const expiresAt = new Date(Date.now() + ttl * 1000).toISOString();
@@ -88,6 +88,7 @@ export async function resolveMediaAccessBatch(
 // ── Internal helpers ──────────────────────────────────────────────────────────
 
 function variantExt(kind: string, variant: string): string {
+  if (variant === 'hls') return 'm3u8';
   if (kind === 'image') {
     if (variant === 'display-jpg') return 'jpg';
     return 'avif';

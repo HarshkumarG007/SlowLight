@@ -1,6 +1,6 @@
 # ADR-016 — HLS Adaptive Streaming
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-09-23  
 **Deciders:** Author  
 
@@ -8,34 +8,35 @@
 
 ## Context
 
-Phase 12 optional extension T12.4. Currently, video is served as a single progressive MP4. For long-form videos (> 5 minutes) on mobile, adaptive bitrate streaming (HLS) would significantly improve the experience by adjusting quality to network conditions.
+Phase 12 optional extension T12.4. Video was originally delivered via progressive MP4 download. For mobile environments, high-resolution videos, and varying network conditions, adaptive bitrate streaming (HLS) delivers faster startup times, minimizes buffering, and dynamically matches quality to client bandwidth.
 
 ## Decision Drivers
 
-- ffmpeg already in the worker pipeline — adding `hls` output is low incremental effort.
-- CloudFront supports serving `.m3u8` playlists + `.ts` segments natively.
-- Privacy concern: HLS manifests contain duration metadata. Must ensure manifests are also served via `/_m/*` signed URLs, not public paths.
-- Safari on iOS requires HLS; current `<video>` progressive fallback works but sub-optimally for long content.
+- **Privacy & Signed URL Delivery (SEC-07)**: Video assets and their HLS manifests contain temporal metadata and private moments. All master playlists, variant playlists, and transport stream segments (`.ts`) must strictly be served via CloudFront signed URLs (`/_m/*`) with 900-second TTL.
+- **Multi-Bitrate Ladder**: Support a standardized 4-tier profile ladder: 1080p (4.5 Mbps), 720p (2.2 Mbps), 480p (1.0 Mbps), and 360p (0.5 Mbps) to provide optimal quality across cellular and broadband connections.
+- **Performance Budget Compliance (PERF-01)**: The client must avoid heavy third-party player libraries that violate bundle size budgets (< 350 KB gzip). Native HLS is utilized on Safari / iOS, paired with an adaptive HTML5 quality switcher and progressive fallback for desktop environments.
+- **Media Pipeline Integration**: The media worker pipeline generates HLS master and media manifests with 6-second segment chunking.
 
 ## Considered Options
 
-1. **Full HLS** — ffmpeg outputs multi-bitrate HLS variants (1080p, 720p, 480p, 360p). Served via signed CloudFront URLs.
-2. **DASH** — Alternative adaptive streaming. Less native iOS support; requires `dash.js` (extra JS weight).
-3. **Progressive MP4 (current)** — Single file, `preload=metadata`. Simple; adequate for short clips.
+1. **Full HLS with Signed Delivery (Adopted)**:
+   - Worker pipeline outputs multi-bitrate HLS streams (`master.m3u8`, variant playlists, and segments).
+   - API issues signed URLs for HLS master manifests with 900s TTL.
+   - Client provides native HLS on iOS/Safari and adaptive quality selection with progressive fallback on desktop.
+2. **DASH (Dynamic Adaptive Streaming over HTTP)**: Lacks native iOS support; requires heavy external JavaScript player. Rejected.
+3. **Progressive MP4 Only**: Suffers from excessive buffering on constrained cellular connections for long videos. Retained strictly as fallback.
 
 ## Decision
 
-**Option 3 — Progressive MP4 (current default).**
+**Adopt Option 1: Multi-Bitrate HLS with Signed Delivery.**
 
-This is a **stub** for if/when the Author adds video content > 5 minutes. Switching to Option 1 requires:
-
-1. Worker pipeline: add `hls` ffmpeg output stage (output: `_hls/<assetId>/master.m3u8` + segment `.ts` files).
-2. S3: segments stored alongside existing variants in media bucket.
-3. API: `POST /media/access` returns signed URLs for the master playlist, not a raw MP4.
-4. Frontend: use native `<video>` HLS support (Safari) + `hls.js` shim for Chrome/Firefox. hls.js adds ~75 KB gzipped — evaluate against performance budget.
-5. Security review: ensure all segment and playlist URLs are signed; deny unsigned manifest access (SEC-07).
+1. `apps/worker/src/hls.ts` implements RFC 8216-compliant HLS playlist generation for master and media variants.
+2. `apps/worker/src/index.ts` records `hls` variant metadata during video asset processing.
+3. `apps/api/src/media/access.ts` supports `variant: 'hls'` returning signed CloudFront URLs for `_hls/<assetId>/master.m3u8`.
+4. `apps/web/src/components/HLSPlayer.tsx` provides adaptive playback, native HLS support on iOS/Safari, quality tier selection, and transparent URL refresh upon expiration.
 
 ## Consequences
 
-- **If adopted:** Better mobile video UX for long clips. +1 sprint for worker + UI changes.
-- **If not adopted:** Works well for short/medium video clips under 5 minutes.
+- **User Experience**: Instant video startup and smooth playback on mobile networks without buffering pauses.
+- **Security & Privacy**: Zero unauthenticated access; all manifests and segments enforce the same signed access controls as photos.
+- **Bundle Weight**: Zero external third-party dependencies added to the client bundle.

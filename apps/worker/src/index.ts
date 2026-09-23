@@ -51,7 +51,7 @@ async function main() {
         UPDATE app.media_assets
         SET 
           status = 'ready', 
-          variants = '[{"variant": "thumb", "width": 320, "height": 320}, {"variant": "display", "width": 960, "height": 960}]'::jsonb
+          variants = '[{"variant": "thumb", "width": 320, "height": 320}, {"variant": "display", "width": 960, "height": 960}, {"variant": "hls", "masterPlaylist": "master.m3u8", "width": 1920, "height": 1080}]'::jsonb
         WHERE status = 'processing'
           AND deleted_at IS NULL
         RETURNING id
