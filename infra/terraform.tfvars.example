@@ -1,0 +1,21 @@
+# terraform.tfvars.example — Slow Light Production Infrastructure Variables
+# Copy to terraform.tfvars and fill in your AWS account-specific values before running terraform apply.
+
+aws_region            = "ap-south-1" # Primary AWS region (default: Mumbai)
+environment           = "production"
+allowed_country_codes = ["IN"]       # ISO 3166-1 alpha-2 codes allowed by WAF geo-fence (D-11)
+
+# KMS CMK used for backup vault and data encryption
+kms_key_arn = "arn:aws:kms:ap-south-1:123456789012:key/your-kms-key-id"
+
+# Primary RDS Postgres instance ARN to back up
+rds_instance_arn = "arn:aws:rds:ap-south-1:123456789012:db:slowlight-db"
+
+# Media S3 bucket ARN to back up
+s3_media_bucket_arn = "arn:aws:s3:::slowlight-media-123456789012"
+
+# CloudFront Distribution ID for 5xx latency and error alarm metrics
+cloudfront_distribution_id = "E1234567EXAMPLE"
+
+# Email address receiving critical CloudWatch alarms and WAF alerts
+sns_alert_email = "author@example.com"
