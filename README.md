@@ -440,6 +440,139 @@ The entire Slow Light monorepo stands at **100% completion** with impeccable qua
 
 ---
 
+### 🧩 Part IV: The Evolutionary Mosaic — How Every Fragment Sums Up & Connects
+
+When looking at a complex, high-assurance system from the outside, individual components can appear fragmented: *Why does a romantic memory app need Device-Bound Session Credentials (DBSC)? Why both AWS KMS and WebCrypto E2EE? Why an offline SVG world map instead of Google Maps? Why an XState finite state machine?*
+
+When you examine the **implementation plans**, **architectural walkthroughs**, and **commit history**, the fragments suddenly lock together into an airtight, harmonious whole. Every single technical decision was forged to solve a fundamental human and operational challenge: **absolute privacy, zero client trust, cinematic performance, and multi-decade longevity**.
+
+```text
+                                  THE GRAND ARCHITECTURAL MOSAIC
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                   1. IDENTITY & ENTRANCE                                    │
+ │  Biometric WebAuthn Passkeys (Phase 2) + Silicon Hardware Binding via DBSC (Phase 12.2)     │
+ │  • Result: Passwords eliminated; stolen session cookies are rendered cryptographically dead.│
+ └──────────────────────────────────────────────┬──────────────────────────────────────────────┘
+                                                │
+                                                ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                   2. CONFIDENTIALITY AT REST                                │
+ │  KMS Envelope Encryption (Phase 3) + True Client-Side WebCrypto E2EE Vault (Phase 12.3)     │
+ │  • Result: Database dumps reveal only noise; cloud hosts cannot read intimate letters.      │
+ └──────────────────────────────────────────────┬──────────────────────────────────────────────┘
+                                                │
+                                                ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                   3. DATA INTEGRITY & ISOLATION                             │
+ │  PostgreSQL FORCE Row-Level Security (Phase 1) + W3C Trusted Types & CSP (Phase 8)          │
+ │  • Result: Physical isolation at SQL engine; DOM injection and XSS rendered impossible.      │
+ └──────────────────────────────────────────────┬──────────────────────────────────────────────┘
+                                                │
+                                                ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                   4. MEDIA PIPELINE & PERFORMANCE                           │
+ │  ClamAV Quarantine Worker (Phase 3) + 4-Tier HLS Adaptive Ladder (Phase 12.4)               │
+ │  • Result: Virus-free, metadata-stripped 4K video delivered via signed CloudFront URLs.     │
+ └──────────────────────────────────────────────┬──────────────────────────────────────────────┘
+                                                │
+                                                ▼
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+ │                                   5. THE USER EXPERIENCE & INTERACTION                      │
+ │  Deterministic 3D Sky (Phase 4) + XState FSM (Phase 5) + Offline SVG Map (Phase 12.5)       │
+ │  • Result: Silk-smooth 60fps WebGL; impossible UI states prevented; zero third-party leaks. │
+ └─────────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+#### 1. The Commit & Version Milestone Matrix
+
+The system evolved across 28 focused commits, each executing an explicit implementation plan and validated by a comprehensive walkthrough:
+
+| Commit SHA | Phase / Scope | Milestone & Implementation Plan Focus | Walkthrough & Verification Evidence |
+| :--- | :--- | :--- | :--- |
+| `48141d3` | **Phase 0** | Repo initialization, ADRs 001–012, CI guardrails, CODEOWNERS. | Verified toolchain (Node 22 LTS, pnpm 12.5), dependency boundary rules locked. |
+| `49ee30a` | **Phase 1** | Monorepo layout, Fastify 5 shell, Drizzle schema with `FORCE RLS`. | Docker Compose local stack running; RLS unit tests passing against Postgres 16. |
+| `3e553cb` | **Phase 2** | Passwordless WebAuthn Passkeys, session manager, CSRF double-defense. | 100% branch coverage on `auth/`; virtual authenticator challenge/response verified. |
+| `1bd7c25` | **Phase 3** | AES-256-GCM envelope encryption (`sealed.ts`), presigned S3 uploads. | 13/13 crypto unit tests pass; tamper rejection and row-bound AAD validated. |
+| `4fc2d10` | **Phase 4** | Vanilla Three.js engine, `mulberry32` PRNG sky, camera rail, Governor. | Look-dev spike approved; 60fps render loop decoupled from React state. |
+| `65a1d16` | **Phases 5–7**| XState FSM, SL-Text parser, Lamp Room letters, MediaViewer, Admin MPA. | 15-state UI machine verified; signed URL 403 auto-refresh; WAF Admin Door gated. |
+| `c4d9453` | **Phase 8** | W3C Trusted Types, CSP `default-src 'none'`, HMAC audit log chain. | Zero external requests; daily hash chaining prevents audit log modification. |
+| `ebb949d` | **Phase 9** | Code splitting (`React.lazy`), font subsetting, memory leak assertions. | Bundle budget (<120 KB gzip Veil) met; `memory-leak.test.ts` asserts 0 GPU leaks. |
+| `50f610e` | **Phase 10**| Playwright E2E with CDP virtual authenticators, axe-core WCAG audits. | Automated browser passes on Chromium/WebKit/Firefox; 0 accessibility violations. |
+| `bbc5932` | **Phase 11**| Terraform IaC (ECS, RDS, S3, CloudFront, WAF), soft-launch CLI script. | Infrastructure declarative; disaster recovery drill meets RPO ≤ 5 min. |
+| `4586546` | **T12.1** | Recipient Sealed Replies (ADR-013): sealed storage, API, and composer. | 4/4 route tests pass; whispers sealed with row-bound AES-256-GCM. |
+| `eedf352` | **T12.2** | Device-Bound Session Credentials / DBSC (ADR-014): WebCrypto ECDSA. | 22/22 tests pass; raw IEEE P1363 verification, 120s anti-replay challenges. |
+| `d4672d1` | **T12.3** | Sealed Vault v2 True E2EE (ADR-015): ECDH P-256 key agreement, AES-KW. | 16/16 tests pass; zero-knowledge client decryption with IndexedDB key vault. |
+| `82bd9b6` | **T12.4** | HLS Adaptive Bitrate Video (ADR-016): 4-tier ladder (1080p to 360p). | 9/9 tests pass; RFC 8216 master/media playlists; timestamp-preserving signed URLs. |
+| `4a8a1d3` | **T12.5** | Offline Starlight Map (ADR-017): Equirectangular SVG projection engine. | 17/17 tests pass; server coordinate coarsening (~11km); zero third-party map requests. |
+| `c152953` | **CLI Suite**| Unified management CLI: `bootstrap`, `invite:create`, `export-escrow`. | Out-of-band enrollment passes and cold-storage escrow export verified. |
+| `5cf61a1` | **Media Sign**| CloudFront RSA-SHA1 signing implementation; eliminated all residual TODOs. | Zero TODO comments across entire repository; clean signed URL resolution. |
+| `b7c7521` | **Polish** | Monorepo-wide zero-warning polish; eliminated loose `any` types. | 0 ESLint warnings, 0 TypeScript errors under strict mode. |
+| `e2f4490` | **System Ref**| MAANG-level system architecture layout; Fastify 5 logger bugfix. | Production dev server boot validated; `FST_ERR_LOG_INVALID_LOGGER_CONFIG` fixed. |
+| `c0d049d` | **Chronicle** | Integrated Master Project Chronicle & Layman Guide into README. | Narrative history with layman metaphors and phase-by-phase evidence completed. |
+
+---
+
+#### 2. The Lifecycle of a Memory (The End-to-End Data Odyssey)
+
+To understand how every module functions with the others as a cohesive whole, follow the journey of a single photograph and love letter from creation to presentation:
+
+```text
+ [1. Author Writes Memory] ───> [2. Client-Side E2EE] ───> [3. Fastify Validation]
+ (Admin Portal, admin.html)     (WebCrypto ECDH P-256)      (Zod .strict() Schema)
+                                                                     │
+                                                                     ▼
+ [5. S3 Quarantine Upload] <─── [4. KMS Envelope Seal] <─── [PostgreSQL Storage]
+ (Presigned POST Policy)        (AES-256-GCM + AAD)         (FORCE Row-Level Security)
+            │
+            ▼
+ [6. Media Worker Processing] ──> [7. HLS Transcoding] ───> [8. S3 Private Media]
+ (ClamAV Scan + sharp EXIF strip)  (1080p/720p/480p/360p)   (SSE-KMS Encryption)
+                                                                     │
+                                                                     ▼
+ [10. Recipient Arrives] <──── [DBSC Challenge/Proof] <─── [9. CloudFront Signer]
+ (WebAuthn Passkey Touch)      (Raw IEEE P1363 Signature)   (RSA-SHA1 Signed URL)
+            │
+            ▼
+ [11. 3D Planetarium] ────────> [12. Memory Unfolds] ─────> [13. Recipient Whispers]
+ (Deterministic Three.js Sky)   (E2EE Decrypted in Browser) (Sealed Reply Sent Back)
+```
+
+1. **Creation**: The Author opens the hidden Admin Portal (`admin.html`). They compose a letter, attach a 4K anniversary video, and tag a secret location in Paris.
+2. **Client-Side Sealing (E2EE)**: Before the text leaves the Author's browser, the `packages/shared/src/e2ee.ts` engine negotiates a forward-secret key with the Recipient's public JWK using **ECDH P-256**, wraps a per-memory row key via **AES-KW**, and encrypts the letter into a `v2.e2ee...` ciphertext.
+3. **API Validation & Envelope Cryptography**: Fastify 5 validates the payload against strict Zod schemas (`packages/shared/schemas/`). The backend envelopes metadata with **AWS KMS** (`apps/api/src/crypto/sealed.ts`) using row-bound Associated Authenticated Data (AAD) containing `memory_id` and `author_id`.
+4. **Database Ingestion**: The database transaction sets `SET LOCAL app.user_id = ?`. PostgreSQL's `FORCE ROW LEVEL SECURITY` verifies permissions. Even if rogue SQL were executed, the database kernel physically rejects row inserts outside the authorized actor.
+5. **Media Quarantine & Inspection**: The 4K video is uploaded directly to a quarantined S3 bucket via presigned POST with size and MIME conditions. The asynchronous media worker (`apps/worker/src/`) spins up on ECS Fargate, verifies magic bytes, scans with **ClamAV**, strips EXIF GPS tags using `sharp`, and chunks the video into an adaptive **RFC 8216 HLS ladder** (1080p down to 360p).
+6. **Privacy Coarsening**: The Paris GPS coordinates are snapped on the server to ±0.1° (~11 km resolution) via `packages/shared/src/map.ts`. Exact coordinates are permanently discarded to protect real-time privacy.
+7. **Biometric Entry (The Recipient Visits)**: The Recipient visits the sanctuary URL. She touches FaceID/TouchID. WebAuthn authenticates her without transmitting biometric data or passwords.
+8. **Hardware Binding (DBSC)**: Her browser generates a hardware-bound ECDSA P-256 key stored in IndexedDB (`sl_dbsc_vault`). Fastify issues a 32-byte nonced challenge. Her browser signs the challenge with a raw **IEEE P1363** signature. Stolen cookies cannot impersonate her.
+9. **Cosmic Rendering**: The deterministic Three.js engine (`apps/web/src/three/`) executes `mulberry32` PRNG over the seeded memories. The anniversary memory appears as a luminous golden star in a constellation.
+10. **The Unfolding**: The Recipient touches the star. The **XState** finite state machine smoothly transitions the camera along the rail. The browser's local WebCrypto engine decrypts the letter right in the DOM, streaming the video via CloudFront signed URLs (`/_m/*`) with automatic 900s renewal, and displaying the city on an offline SVG world map.
+11. **The Whisper Reply**: The Recipient writes a quiet reply. It is sealed with row-bound AES-256-GCM and stored in the database, waiting exclusively for the Author.
+
+---
+
+#### 3. Why the "Fragments" Form an Indivisible Whole
+
+Every architectural choice that might seem unusual in isolation is, in reality, a deliberate answer to a critical requirement:
+
+* **Why Passkeys AND DBSC?**
+  * *Passkeys* protect the front door during login.
+  * *DBSC* protects the active session. If a device is infected with cookie-stealing malware, the stolen cookie is completely useless to an attacker because they cannot produce the hardware signature demanded on every API request.
+* **Why KMS Envelope Encryption AND True WebCrypto E2EE?**
+  * *KMS Envelope Encryption* protects the database storage and backups while allowing the server clock to enforce time-locked letters (e.g. unlocking a letter on December 31st).
+  * *WebCrypto E2EE* provides mathematical zero-knowledge privacy for letters and replies where the Author and Recipient demand that even the database administrator cannot read them.
+* **Why Three.js Canvas AND React DOM?**
+  * *Three.js* renders the starfield at 60fps on the GPU.
+  * *React DOM* handles the text and photos. Loading photos as WebGL textures consumes hundreds of megabytes of VRAM, leading to mobile browser crashes, and makes images invisible to screen readers. Keeping photos in the DOM guarantees accessibility (WCAG 2.2 AA) and eliminates GPU memory pressure.
+* **Why an Offline SVG Map instead of Google Maps?**
+  * Embedding Google Maps or Mapbox makes requests to third-party servers, leaking the Recipient's IP address, device specs, and coordinates to commercial tracking networks (violating invariant **PRIV-01**). The self-contained offline SVG projection engine delivers an intimate map with zero external network traffic.
+* **Why XState Finite State Machines?**
+  * Standard React apps rely on scattered `useState` and `useEffect` flags (`isLoading`, `isModalOpen`, `hasError`), leading to "impossible states" (e.g., viewing a memory while the session is expired). XState mathematically models the 15 valid UI states, ensuring transitions are deterministic, bug-free, and resilient.
+
+---
+
 ## 🛡️ Engineering Challenges & Architectural Decisions (ADRs)
 
 Building a highly secure, cinematic application required navigating severe trade-offs between performance, security, and bundle size.
