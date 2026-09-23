@@ -613,23 +613,23 @@ Before writing application code, Phase 0 establishes the cryptographic bedrock. 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant Dev as Author / SCM (Git)
+    participant Dev as Author and Git
     participant CI as GitHub Actions CI
     participant IAM as AWS IAM (OIDC Provider)
     participant TF as Terraform Engine
-    participant KMS as AWS KMS & S3
+    participant KMS as AWS KMS and S3
     
     Dev->>CI: Push infrastructure commits to main branch
     CI->>IAM: Request short-lived STS credentials via OIDC token
     Note over IAM: Validates repository, branch, and signature
     IAM-->>CI: Issue scoped temporary IAM role credentials (1h TTL)
-    CI->>TF: Execute terraform plan / apply
+    CI->>TF: Execute terraform plan and apply
     TF->>KMS: Acquire S3 remote state lock via DynamoDB
     TF->>KMS: Provision CMKs (alias/slowlight-sealed, media, vault)
-    Note over KMS: Enforces key rotation & deletion locks
+    Note over KMS: Enforces key rotation and deletion locks
     TF->>KMS: Provision S3 buckets with S3 Block Public Access
-    TF-->>CI: Infrastructure state locked & verified
-    CI-->>Dev: Automated pipeline green; zero secrets stored in CI
+    TF-->>CI: Infrastructure state locked and verified
+    CI-->>Dev: Automated pipeline green, zero secrets stored in CI
 ```
 
 **Architectural Rationale:** By refusing to generate long-lived AWS Access Keys, the blast radius of any compromised developer machine or CI secret leakage is reduced to zero.
@@ -650,18 +650,18 @@ sequenceDiagram
     participant Drizzle as Drizzle ORM
     participant DB as PostgreSQL (RLS Engine)
     
-    Browser->>API: HTTP Request with __Host-sl_sid Cookie
-    API->>Middleware: Intercept & inspect session cookie
-    Middleware->>DB: Validate SHA-256 token hash & expiration
-    DB-->>Middleware: Return user record (id, role='recipient')
-    Middleware->>DB: SET LOCAL role = 'slowlight_app'
-    Middleware->>DB: SET LOCAL request.jwt.claim.sub = 'usr_...'
-    API->>Drizzle: Execute query: SELECT * FROM memories
+    Browser->>API: HTTP Request with Host-sl_sid Cookie
+    API->>Middleware: Intercept and inspect session cookie
+    Middleware->>DB: Validate SHA-256 token hash and expiration
+    DB-->>Middleware: Return user record (role is recipient)
+    Middleware->>DB: SET LOCAL role to slowlight_app
+    Middleware->>DB: SET LOCAL request.jwt.claim.sub to user ID
+    API->>Drizzle: Execute query: SELECT FROM memories
     Drizzle->>DB: Forward SQL statement
-    Note over DB: Postgres RLS kernel evaluates USING policy:<br/>(author_id = current_setting(...) OR published_at <= NOW())
-    DB-->>Drizzle: Return only permitted rows (unauthorized rows silently stripped)
+    Note over DB: Postgres RLS kernel evaluates USING policy<br/>author_id = current_user OR published_at in past
+    DB-->>Drizzle: Return only permitted rows (unauthorized rows stripped)
     Drizzle-->>API: Typed memory entity array
-    API-->>Browser: 200 OK (Clean payload; unauthorized objects yield 404)
+    API-->>Browser: 200 OK (Clean payload, unauthorized objects return 404)
 ```
 
 **Architectural Rationale:** Even if an application developer writes a buggy query like `SELECT * FROM memories` without a `WHERE` clause, the Postgres RLS kernel prevents data leakage at the database engine level. Unauthorized rows return 404 (never 403), preventing attacker resource enumeration.
@@ -684,17 +684,17 @@ sequenceDiagram
     Browser->>Edge: POST /api/v1/auth/passkey/options
     Edge->>API: Forward request (rate-limited by IP prefix)
     API->>API: Generate 32-byte cryptographically secure challenge
-    API->>DB: INSERT INTO auth_challenges (TTL = 120s)
+    API->>DB: INSERT INTO auth_challenges (TTL 120s)
     API-->>Browser: PublicKeyCredentialRequestOptions
-    Note over Browser: Prompt FaceID / TouchID / Windows Hello<br/>navigator.credentials.get()
+    Note over Browser: Prompt FaceID or TouchID or Windows Hello<br/>navigator.credentials.get()
     Browser->>Browser: Sign challenge using hardware private key
     Browser->>API: POST /api/v1/auth/passkey/verify (Assertion)
-    API->>DB: SELECT challenge WHERE consumed = false
+    API->>DB: SELECT challenge WHERE consumed is false
     API->>API: Verify ECDSA signature against stored public key
-    API->>API: Verify RP ID, origin, and increment counter (prevents replay)
-    API->>DB: UPDATE auth_challenges SET consumed = true
+    API->>API: Verify RP ID, origin, and increment counter
+    API->>DB: UPDATE auth_challenges SET consumed is true
     API->>DB: INSERT INTO sessions (token_hash, expires_at)
-    API-->>Browser: Set-Cookie: __Host-sl_sid (HttpOnly, Secure, SameSite=Strict)
+    API-->>Browser: Set-Cookie Host-sl_sid (HttpOnly, Secure, SameSite Strict)
 ```
 
 **Architectural Rationale:** Passkeys are cryptographically bound to the exact origin (`slowlight.love`). Phishing sites cannot relay credentials because the browser signs the authentic domain name directly in hardware.
@@ -716,19 +716,19 @@ sequenceDiagram
     participant KMS as AWS KMS (CMK)
     participant S3V as S3 Media Vault Bucket
     
-    Admin->>API: POST /admin/media/uploads {mime, bytes, sha256}
+    Admin->>API: POST /admin/media/uploads (mime, bytes, checksum)
     API-->>Admin: Presigned S3 POST URL (strict policy conditions)
     Admin->>S3Q: Direct binary upload to quarantine bucket
-    Admin->>API: POST /admin/media/uploads/:id/complete
+    Admin->>API: POST /admin/media/uploads/id/complete
     API->>Worker: Enqueue processing task (ECS RunTask)
     Worker->>S3Q: Download raw binary into sandboxed memory
-    Worker->>Worker: ClamAV anti-malware scan & ExifTool GPS stripping
-    Worker->>KMS: GenerateDataKey(KeyId="alias/slowlight-media")
-    KMS-->>Worker: Plaintext DEK + Ciphertext DEK
+    Worker->>Worker: ClamAV anti-malware scan and ExifTool GPS stripping
+    Worker->>KMS: GenerateDataKey for slowlight-media
+    KMS-->>Worker: Plaintext DEK plus Ciphertext DEK
     Worker->>Worker: Encrypt asset with AES-256-GCM using Plaintext DEK
     Worker->>Worker: Securely zero Plaintext DEK from RAM
-    Worker->>S3V: Upload encrypted asset + Ciphertext DEK envelope
-    Worker->>API: Mark asset status = 'ready' in DB
+    Worker->>S3V: Upload encrypted asset and Ciphertext DEK envelope
+    Worker->>API: Mark asset status as ready in DB
 ```
 
 **Architectural Rationale:** The API never handles multi-gigabyte media streams directly, preserving compute resources. Media files are sanitised in an ephemeral worker sandbox, stripping sensitive EXIF GPS locations before persistent storage.
@@ -753,12 +753,12 @@ sequenceDiagram
     Client->>Engine: Initialize WorldCanvas context
     Engine->>PRNG: Seed generator with deterministic timestamp seed
     PRNG-->>Engine: Compute stable (x, y, z) star coordinates
-    Engine->>Tracker: Allocate InstancedBufferGeometry & Custom Shaders
+    Engine->>Tracker: Allocate InstancedBufferGeometry and Shaders
     Tracker->>GPU: Upload starfield vertex buffers
     loop 60 FPS Render Loop
         Engine->>Engine: Evaluate Frame Governor (monitor delta-time)
-        alt Frame budget exceeded (>16.6ms)
-            Engine->>Engine: Throttle shader passes / step down visual tier
+        alt Frame budget exceeded
+            Engine->>Engine: Throttle shader passes and step down visual tier
         else Frame budget healthy
             Engine->>GPU: Issue instanced draw call
         end
@@ -766,8 +766,8 @@ sequenceDiagram
     Client->>XState: User taps star in viewport
     XState->>Engine: Command: TRAVEL_TO_COORDINATE(x, y, z)
     Engine->>GPU: Interpolate camera along cubic Bezier curve rail
-    Client->>Tracker: Unmount canvas / navigate away
-    Tracker->>GPU: Call geometry.dispose(), material.dispose(), release VRAM
+    Client->>Tracker: Unmount canvas or navigate away
+    Tracker->>GPU: Dispose geometry and materials, release VRAM
 ```
 
 **Architectural Rationale:** By decoupling Three.js from React's component render tree and managing allocations via `ResourceTracker`, Slow Light eliminates garbage collection spikes and WebGL memory leaks on constrained mobile devices.
@@ -789,18 +789,18 @@ sequenceDiagram
     participant API as Fastify API
     
     User->>XState: Send event: SELECT_MEMORY(id)
-    Note over XState: State: exploring -> unfolding<br/>Locks camera, disables picking, fires audio whoosh
+    Note over XState: State: exploring to unfolding<br/>Locks camera, disables picking, fires audio whoosh
     XState-->>React: Transition state change
     React->>API: GET /api/v1/memories/:id
     API-->>React: Return sealed memory payload
     React->>Parser: parseSLText(memory.rawContent)
     Note over Parser: Tokenizes custom syntax, builds AST,<br/>enforces strict no-raw-HTML sanitization
     Parser-->>React: Sanitized React Component Tree
-    XState->>XState: Camera finishes rail travel (timer / tween done)
-    XState->>XState: Transition: unfolding -> viewing
+    XState->>XState: Camera finishes rail travel
+    XState->>XState: Transition: unfolding to viewing
     XState-->>React: Open MemoryPanel overlay with focus trap
-    User->>XState: Press Esc / Close Button
-    XState->>XState: Transition: viewing -> returning -> exploring
+    User->>XState: Press Esc or Close Button
+    XState->>XState: Transition: viewing to returning to exploring
 ```
 
 **Architectural Rationale:** Complex UI states are modeled as a directed graph. There is zero reliance on scattered `boolean` state flags (`isLoading`, `isOpen`), guaranteeing bug-free navigation and seamless accessibility focus management.
@@ -821,20 +821,20 @@ sequenceDiagram
     participant Edge as CloudFront CDN (/_m/*)
     participant S3 as S3 Private Media Bucket
     
-    UI->>API: POST /api/v1/media/access {assetId, variant: 'display'}
-    Note over API: Checks caller session & RLS relationship
-    API-->>UI: Return RSA-SHA1 Signed URL (TTL = 900 seconds)
-    UI->>Edge: GET /_m/<assetId>/display?Expires=...&Signature=...
+    UI->>API: POST /api/v1/media/access (assetId, variant display)
+    Note over API: Checks caller session and RLS relationship
+    API-->>UI: Return RSA-SHA1 Signed URL (TTL 900 seconds)
+    UI->>Edge: GET /_m/assetId/display with signature
     Edge->>Edge: Validate signature against CloudFront Key Group
     Edge->>S3: Fetch private asset with OAC authentication
     S3-->>Edge: Binary stream
     Edge-->>UI: 200 OK (Cache-Control: private, no-store)
-    UI->>LRU: Register binary blob & generate URL.createObjectURL()
-    alt Total active blob memory > 50 MB
-        LRU->>LRU: Revoke oldest URL via URL.revokeObjectURL()
+    UI->>LRU: Register binary blob and createObjectURL()
+    alt Total active blob memory exceeds 50 MB
+        LRU->>LRU: Revoke oldest URL via revokeObjectURL()
     end
-    UI->>UI: Render media in DOM element (<img> or <video>)
-    UI->>LRU: On component unmount: URL.revokeObjectURL() immediately
+    UI->>UI: Render media in DOM element (img or video)
+    UI->>LRU: On component unmount: revokeObjectURL() immediately
 ```
 
 **Architectural Rationale:** Media URLs are ephemeral (900s TTL). Photos and videos are loaded as DOM elements rather than WebGL textures, preserving GPU memory and allowing screen readers to access descriptive alternative text.
@@ -855,22 +855,22 @@ sequenceDiagram
     participant Audit as Audit Hash Chain Engine
     participant DB as PostgreSQL DB
     
-    Author->>WAF: POST /admin/door-knock with pre-shared cryptographic proof
-    WAF->>WAF: Check IP allow-list + proof validation
+    Author->>WAF: POST /admin/door-knock with cryptographic proof
+    WAF->>WAF: Check IP allow-list and proof validation
     WAF-->>Author: 200 OK (Open transient 15-minute door window)
     Author->>API: POST /api/admin/auth/passkey (Admin login)
     API-->>Author: Admin session cookie created
     Author->>API: POST /api/admin/memories/:id/delete (Destructive Action)
     Note over API: Step-Up Check: Action requires fresh elevation
     API-->>Author: 403 Elevation Required (Challenge issued)
-    Author->>Author: Biometric User Verification (UV) via Passkey
+    Author->>Author: Biometric User Verification via Passkey
     Author->>API: POST /api/admin/elevation/verify (Assertion)
-    API->>API: Verify assertion; grant 5-minute elevated token
+    API->>API: Verify assertion and grant 5-minute elevated token
     Author->>API: POST /api/admin/memories/:id/delete (with Elevation Token)
     API->>DB: Soft delete memory record in transaction
     API->>Audit: Append event: memory.delete
-    Note over Audit: Computes immutable SHA-256 chain:<br/>hash_n = SHA-256(hash_{n-1} || action || actor || timestamp)
-    Audit->>DB: INSERT INTO audit_logs (hash, prev_hash, ...)
+    Note over Audit: Computes immutable SHA-256 chain<br/>hash_n = SHA256(prev_hash, action, actor, timestamp)
+    Audit->>DB: INSERT INTO audit_logs (hash, prev_hash)
     API-->>Author: 200 OK (Audit anchored)
 ```
 
@@ -891,15 +891,15 @@ sequenceDiagram
     participant Browser as Client Browser (Veil DOM)
     participant API as Fastify CSP Report API
     
-    Edge-->>Browser: HTTP 200 with Draconian Security Headers:<br/>Content-Security-Policy: default-src 'self'; script-src 'self' 'require-trusted-types-for'<br/>Cross-Origin-Opener-Policy: same-origin<br/>Cross-Origin-Embedder-Policy: require-corp
+    Edge-->>Browser: HTTP 200 with Strict Security Headers (CSP, COOP, COEP)
     Note over Browser: Browser creates isolated process space (Spectre mitigation)
     Attacker->>Browser: Attempt DOM injection: element.innerHTML = payload
-    Note over Browser: Trusted Types Engine blocks operation:<br/>TypeError: Failed to set 'innerHTML': This document requires 'TrustedHTML'
+    Note over Browser: Trusted Types Engine blocks operation:<br/>Requires TrustedHTML policy
     Browser->>API: POST /api/v1/csp-report (Automated violation beacon)
-    API->>API: Log security anomaly; alert Author via webhook
+    API->>API: Log security anomaly and alert Author via webhook
     Attacker->>Edge: Attempt directory traversal: GET /api/v1/../../etc/passwd
     Edge->>Edge: WAF Core Rule Set intercepts malicious pattern
-    Edge-->>Attacker: 403 Forbidden (Blocked at edge; API never invoked)
+    Edge-->>Attacker: 403 Forbidden (Blocked at edge, API never invoked)
 ```
 
 **Architectural Rationale:** Modern web security must defend in depth. Trusted Types eliminate DOM XSS at the compiler and runtime level, while COOP/COEP headers isolate renderer processes from shared memory leaks.
@@ -919,17 +919,17 @@ sequenceDiagram
     participant CDN as CloudFront CDN
     participant Mobile as Low-Tier Mobile Device
     
-    Build->>Build: Execute font subsetting (strip unused glyphs: 2.4MB -> 35KB)
-    Build->>Build: Vite code-splitting: Core Veil (<120KB gz) vs World Canvas
+    Build->>Build: Execute font subsetting (strip unused glyphs: 2.4MB to 35KB)
+    Build->>Build: Vite code-splitting: Core Veil (under 120KB gz) vs World Canvas
     Build->>Build: Pre-compress assets with Brotli level 11 (.br)
     Build->>S3: Deploy immutable versioned chunks (/assets/*)
     Mobile->>CDN: GET /index.html (Initial page request)
-    CDN-->>Mobile: Deliver Brotli HTML + Critical CSS (LCP <= 1.8s)
+    CDN-->>Mobile: Deliver Brotli HTML and Critical CSS (LCP under 1.8s)
     Note over Mobile: Render login Veil without loading Three.js engine
     Mobile->>Mobile: User completes Passkey authentication
-    Mobile->>CDN: Dynamic import: import('./WorldCanvas')
+    Mobile->>CDN: Dynamic import: import(WorldCanvas)
     CDN-->>Mobile: Deliver 3D World chunk on demand
-    Note over Mobile: Baseline memory capped under 150MB; steady 60fps
+    Note over Mobile: Baseline memory capped under 150MB, steady 60fps
 ```
 
 **Architectural Rationale:** The heavy Three.js engine and 3D assets are never downloaded before authentication. This guarantees maximum page speed for initial authentication and prevents unauthenticated memory waste.
@@ -954,15 +954,15 @@ sequenceDiagram
     CI->>Playwright: pnpm e2e:run
     Playwright->>CDP: Attach to Chromium DevTools Protocol
     CDP->>WebAuthn: WebAuthn.enable()
-    CDP->>WebAuthn: WebAuthn.addVirtualAuthenticator({protocol: 'ctap2', transport: 'internal'})
+    CDP->>WebAuthn: WebAuthn.addVirtualAuthenticator(CTAP2 internal)
     Playwright->>API: Execute user enrollment flow
     API-->>Playwright: Return registration challenge
-    Playwright->>WebAuthn: Synthetic biometric sign (User Verification = true)
+    Playwright->>WebAuthn: Synthetic biometric sign (User Verification true)
     WebAuthn-->>Playwright: Valid attestation signature
-    Playwright->>API: Complete registration & verify session
+    Playwright->>API: Complete registration and verify session
     Playwright->>Axe: Run automated WCAG 2.2 AA accessibility scan
     Axe-->>Playwright: Assert 0 serious/critical violations
-    Playwright-->>CI: 100% test pass (94 unit/integration + E2E suites green)
+    Playwright-->>CI: 100% test pass (94 unit/integration and E2E suites green)
 ```
 
 **Architectural Rationale:** Testing security-critical code requires continuous automation. CDP virtual authenticators allow full regression testing of Passkey registration, authentication, counter rollover, and timeout handling in CI without manual hardware taps.
@@ -987,12 +987,12 @@ sequenceDiagram
     ECS->>RDS: Execute idempotent schema migrations in transaction
     RDS-->>ECS: Schema verified
     CI->>ECS: Update ECS Service with new task definition (Blue/Green)
-    ECS->>ECS: Spin up new container tasks; run ALB health checks
+    ECS->>ECS: Spin up new container tasks and run ALB health checks
     ECS->>ECS: Drain traffic from old tasks once health checks pass
     Cron->>RDS: Daily snapshot: pg_dump encrypted stream
     Cron->>Cron: Encrypt database dump using air-gapped PGP Public Key
     Cron->>BackupS3: Replicate sealed archive to secondary AWS Account
-    Note over BackupS3: S3 Object Lock enforces WORM compliance<br/>(Write Once, Read Many; immune to ransomware/deletion)
+    Note over BackupS3: S3 Object Lock enforces WORM compliance<br/>Write Once Read Many, immune to ransomware or deletion
 ```
 
 **Architectural Rationale:** Backups are useless unless protected from compromise. Encrypting backups with an offline PGP key and storing them in an independent AWS account with WORM compliance guarantees recovery even if the primary cloud account is compromised.
@@ -1017,16 +1017,16 @@ sequenceDiagram
     participant DB as PostgreSQL (replies table)
     participant Author as Author Admin (RepliesViewer)
     
-    Recipient->>API: POST /api/v1/replies {memoryId, body: "I remember..."}
+    Recipient->>API: POST /api/v1/replies (memoryId, body)
     Note over API: Validates session, CSRF, and memory accessibility
-    API->>Crypto: sealEnvelope(body, AAD={replyId, memoryId, authorId})
+    API->>Crypto: sealEnvelope(body, AAD with replyId and memoryId)
     Crypto->>Crypto: Generate random 256-bit AES-GCM Key
     Crypto->>Crypto: Encrypt plaintext body with row-bound AAD
     Crypto-->>API: Sealed ciphertext payload
     API->>DB: INSERT INTO replies (id, memory_id, author_id, body_ciphertext)
     DB-->>API: 201 Created
     API-->>Recipient: Acknowledged (Stored in sealed vault)
-    Author->>API: GET /api/v1/replies?memoryId=...
+    Author->>API: GET /api/v1/replies?memoryId=id
     API->>DB: Fetch sealed replies
     API->>Crypto: unsealEnvelope(ciphertext, AAD)
     Crypto-->>API: Decrypted plaintext
@@ -1049,17 +1049,17 @@ sequenceDiagram
     participant DB as PostgreSQL (device_sessions)
     
     Browser->>API: POST /api/v1/auth/passkey/verify (Successful Login)
-    API-->>Browser: Set-Cookie: __Host-sl_sid + Header: Sec-Session-Registration
+    API-->>Browser: Set-Cookie: Host-sl_sid and Sec-Session-Registration
     Browser->>Browser: Generate non-extractable ECDSA P-256 keypair in IndexedDB
     Browser->>API: POST /api/auth/dbsc/challenge
     API-->>Browser: Issue 32-byte cryptographic challenge (120s TTL)
     Browser->>Browser: Sign challenge using private key via WebCrypto (IEEE P1363 / DER)
-    Browser->>API: POST /api/auth/dbsc/register {publicKey, signature}
+    Browser->>API: POST /api/auth/dbsc/register (publicKey, signature)
     API->>API: Verify ECDSA signature against public key
     API->>DB: INSERT INTO device_sessions (session_id, public_key_jwk)
     API-->>Browser: Session bound to hardware device
     loop Every Protected API Request
-        Browser->>API: GET /api/v1/memories + Header: Sec-Session-Signature
+        Browser->>API: GET /api/v1/memories with Sec-Session-Signature
         API->>DB: Load bound public key
         API->>API: Validate signature over current request attributes
         API-->>Browser: 200 OK (Data returned)
@@ -1083,10 +1083,10 @@ sequenceDiagram
     Note over R: Generates ECDH P-256 Keypair<br/>Stores Private Key in IndexedDB
     R->>API: POST /api/auth/e2ee/keys (Registers Public JWK)
     A->>API: GET /api/auth/e2ee/keys (Fetches Recipient Public JWK)
-    Note over A: 1. Generates 256-bit AES-GCM CEK<br/>2. Encrypts plaintext with row-bound AAD<br/>3. Generates Ephemeral ECDH keypair<br/>4. Derives KEK via ECDH + HKDF<br/>5. Wraps CEK via AES-KW<br/>6. Formats v2.e2ee envelope
+    Note over A: 1. Generates 256-bit AES-GCM CEK<br/>2. Encrypts plaintext with row-bound AAD<br/>3. Generates Ephemeral ECDH keypair<br/>4. Derives KEK via ECDH and HKDF<br/>5. Wraps CEK via AES-KW<br/>6. Formats v2.e2ee envelope
     A->>API: Stores v2.e2ee opaque ciphertext in DB
     R->>API: Fetches memory / letter (gets v2.e2ee string)
-    Note over R: 1. Unpacks Author Ephemeral Public Key<br/>2. Derives KEK using Recipient Private Key<br/>3. Unwraps CEK via AES-KW<br/>4. Decrypts AES-GCM ciphertext + checks AAD
+    Note over R: 1. Unpacks Author Ephemeral Public Key<br/>2. Derives KEK using Recipient Private Key<br/>3. Unwraps CEK via AES-KW<br/>4. Decrypts AES-GCM ciphertext and checks AAD
     Note over R: Renders cleartext in DOM with E2EE badge
 ```
 
@@ -1107,13 +1107,13 @@ sequenceDiagram
 
     Note over M: Video Processing Triggered
     M->>M: Generates 1080p, 720p, 480p, 360p variants
-    M->>M: Generates master.m3u8 & variant playlists
-    M->>C: Uploads segments & manifests (SSE-KMS)
-    M->>S: Updates media_assets (variant: 'hls')
-    W->>S: POST /api/v1/media/access { assetId, variant: 'hls' }
-    Note over S: Verifies session & RLS visibility
+    M->>M: Generates master.m3u8 and variant playlists
+    M->>C: Uploads segments and manifests (SSE-KMS)
+    M->>S: Updates media_assets (variant hls)
+    W->>S: POST /api/v1/media/access (assetId, variant hls)
+    Note over S: Verifies session and RLS visibility
     S-->>W: Returns signed CloudFront URL for master.m3u8 (TTL 900s)
-    W->>C: GET /_m/.../master.m3u8 (with signed signature)
+    W->>C: GET /_m/.../master.m3u8 with signature
     C-->>W: Master playlist with bitrate tiers
     Note over W: Adaptive playback (Safari native / quality switcher)
 ```
@@ -1137,8 +1137,8 @@ sequenceDiagram
     API->>DB: Query visible memories with location data
     DB-->>API: Raw memory records with exact GPS coordinates
     loop For each memory pin
-        API->>API: Coarsen coordinates to +/- 0.1 deg (~11 km blur)
-        API->>API: Strip precise timestamps & device metadata
+        API->>API: Coarsen coordinates to plus-minus 0.1 deg (approx 11 km blur)
+        API->>API: Strip precise timestamps and device metadata
     end
     API-->>Client: 200 OK (Sanitized coordinate pins array)
     Client->>Shared: projectCoordinatesToSVG(lat, lon, width, height)
