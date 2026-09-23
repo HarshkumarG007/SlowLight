@@ -23,5 +23,14 @@ export default defineConfig({
         }
       }
     }
-  }
+  },
+  // Playwright e2e specs must be excluded from Vitest — they use Playwright's
+  // own runner invoked separately via `pnpm e2e`.
+  test: {
+    exclude: [
+      'tests/e2e/**',
+      '**/node_modules/**',
+      '**/dist/**',
+    ],
+  },
 });

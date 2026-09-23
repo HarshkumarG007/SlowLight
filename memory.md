@@ -3,17 +3,17 @@ The assistant reads this at the start of every task and appends to it at the end
 
 ## 1. Current status
 - **Date:** 2026-09-23
-- **Workflow stage:** Phase 11 (Production) Implementation Complete
-- **Current phase / task:** Phase 11 complete
-- **Last completed task:** T11.5 Soft Launch Script
-- **Next task:** Phase 12 (Optional Extensions) or final review
-- **Blockers:** none
+- **Workflow stage:** All phases 0–11 implementation COMPLETE
+- **Current phase / task:** Awaiting Author actions: T11.6 (Recipient enrollment in person), T11.7 (week-one monitoring review)
+- **Last completed task:** T11.5 Soft Launch Script + project task.md final sync
+- **Next task:** T11.6 — Author must enroll Recipient in person. Then T12.x optional extensions (each needs an ADR first)
+- **Blockers:** none (code complete); two manual Author actions remain before go-live
 - **Open questions for the Author (must answer before listed phase):**
-  - Domain name — needed before Phase 2 (WebAuthn RP ID is origin-bound)
-  - Allowed countries for WAF geo allow-list — needed before Phase 8
-  - Primary AWS region — needed before Phase 3 Terraform
-  - Hardware security key for Author — strongly recommended before Phase 2
-  - Closing line + greeting texts — can be loaded via admin any time before launch
+  - Domain name — needed before WebAuthn RP ID is set on real deploy (Phase 11 apply)
+  - Allowed countries for WAF geo allow-list — default is `["IN"]`; update `infra/variables.tf` before `terraform apply`
+  - Primary AWS region — default set to `ap-south-1`; update if different
+  - Hardware security key for Author — strongly recommended before enrollment
+  - Closing line + greeting texts — load via admin panel after soft launch
 
 ## 2. Important technical decisions (see ADRs in docs/adr/)
 | ID | Date | Decision | Why | ADR |
