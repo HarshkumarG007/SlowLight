@@ -20,7 +20,7 @@ import { e2eeRoutes } from './routes/e2ee.routes.js';
 import { mapRoutes } from './routes/map.routes.js';
 
 const app = fastify({
-  logger: logger,
+  loggerInstance: logger,
   disableRequestLogging: true
 });
 
