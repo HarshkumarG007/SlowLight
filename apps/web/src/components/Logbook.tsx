@@ -6,9 +6,22 @@ export interface LogbookProps {
   onOpenMemory: (id: string) => void;
 }
 
+export interface SearchResultSnippet {
+  text: string;
+  matches: number[][];
+}
+
+export interface SearchResult {
+  id: string;
+  title: string;
+  occurredOn: string;
+  snippet: SearchResultSnippet;
+  chapterId?: string;
+}
+
 export function Logbook({ onClose, onOpenMemory }: LogbookProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

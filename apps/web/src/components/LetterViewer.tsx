@@ -2,11 +2,18 @@ import { useEffect, useState } from 'react';
 import styles from './LetterViewer.module.css';
 import { SLText } from './SLText';
 
+export interface LetterAsset {
+  assetId: string;
+  kind: 'image' | 'video' | 'audio';
+  variant: string;
+  alt?: string;
+}
+
 export interface LetterData {
   id: string;
   title: string;
   body: string;
-  assets?: Array<any>;
+  assets?: LetterAsset[];
 }
 
 export interface LetterViewerProps {

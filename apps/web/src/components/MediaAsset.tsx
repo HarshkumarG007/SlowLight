@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useMediaAccess } from '../hooks/useMediaAccess';
 import styles from './MediaViewer.module.css'; // Shared module for Media Components
@@ -42,11 +43,10 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
     };
   }, [assetId, variant, getUrl]);
 
-  const handleError = async (e: any) => {
+  const handleError = async (_e: React.SyntheticEvent | null) => {
     // If we hit a 403 (likely expired signed URL), try to refresh it
     // HTML5 media elements don't directly expose HTTP status codes in the error event,
     // but a network error during playback usually sets networkState to NETWORK_NO_SOURCE.
-    console.warn('Media playback error encountered', e);
     
     if (refreshing) return;
     setRefreshing(true);
@@ -73,8 +73,7 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
         setRefreshing(false);
       }, 50);
       
-    } catch (refreshErr) {
-      console.error('Failed to refresh media URL', refreshErr);
+    } catch {
       setError(true);
       setRefreshing(false);
     }
@@ -102,7 +101,7 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
       
       {src && kind === 'image' && (
         <img 
-          ref={mediaRef as any}
+          ref={mediaRef as React.RefObject<HTMLImageElement>}
           src={src} 
           alt={alt || ''} 
           className={styles.image}
@@ -113,7 +112,7 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
 
       {src && kind === 'video' && (
         <video 
-          ref={mediaRef as any}
+          ref={mediaRef as React.RefObject<HTMLVideoElement>}
           src={src}
           className={styles.video}
           controls
@@ -125,7 +124,7 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
 
       {src && kind === 'audio' && (
         <audio 
-          ref={mediaRef as any}
+          ref={mediaRef as React.RefObject<HTMLAudioElement>}
           src={src}
           className={styles.audio}
           controls

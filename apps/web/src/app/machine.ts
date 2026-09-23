@@ -14,7 +14,7 @@ export interface ExperienceContext {
   focusId: string | null;
   chapterId: string | null;
   letterId: string | null;
-  returnPose: any | null;
+  returnPose: Record<string, unknown> | null;
   retry: number;
 }
 
@@ -56,10 +56,15 @@ export const experienceMachine = setup({
   actions: {
     setModeFlat: assign({ mode: 'flat' }),
     storeCapabilities: assign({
+      // XState v5: actor output arrives as event.output; typed as any because
+      // the union of 25+ event types makes inference impractical here.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tier: ({ event }: any) => event.output?.tier ?? 'high',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       reducedMotion: ({ event }: any) => event.output?.reducedMotion ?? false,
     }),
     storeRole: assign({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       role: ({ event }: any) => event.output?.role ?? null,
     }),
     storeWorld: assign({}), // stub
@@ -71,45 +76,46 @@ export const experienceMachine = setup({
     setFocusToPrev: assign({}),
     setLetter: assign({ letterId: ({ event }) => (event as Extract<ExperienceEvent, { type: 'OPEN_LETTER' }>).letterId }),
 
-    // Side-effects (mocked for now, to be implemented properly with Three.js later)
-    renderVeil: () => console.log('renderVeil'),
-    createAudioContext: () => console.log('createAudioContext'),
-    showAdjustLine: () => console.log('showAdjustLine'),
-    showCalmError: () => console.log('showCalmError'),
-    showKnockPrompt: () => console.log('showKnockPrompt'),
-    verifyKnock: () => console.log('verifyKnock'),
-    startArrival: () => console.log('startArrival'),
-    startAmbientIfEnabled: () => console.log('startAmbientIfEnabled'),
-    drawConstellation: () => console.log('drawConstellation'),
-    flyCameraToFocus: () => console.log('flyCameraToFocus'),
-    engineTravel: () => console.log('engineTravel'),
-    dimScene: () => console.log('dimScene'),
-    undimScene: () => console.log('undimScene'),
-    prefetchNeighbors: () => console.log('prefetchNeighbors'),
-    unfoldPanel: () => console.log('unfoldPanel'),
-    announceOpened: () => console.log('announceOpened'),
-    foldPanel: () => console.log('foldPanel'),
-    returnCamera: () => console.log('returnCamera'),
-    restoreFocusAnchor: () => console.log('restoreFocusAnchor'),
-    openViewer: () => console.log('openViewer'),
-    trapFocus: () => console.log('trapFocus'),
-    closeViewer: () => console.log('closeViewer'),
-    releaseFocus: () => console.log('releaseFocus'),
-    revokeObjectUrls: () => console.log('revokeObjectUrls'),
-    enterLampRoom: () => console.log('enterLampRoom'),
-    exitLampRoom: () => console.log('exitLampRoom'),
-    showNotYet: () => console.log('showNotYet'),
-    railToFrontier: () => console.log('railToFrontier'),
-    thinAmbience: () => console.log('thinAmbience'),
-    showClosingLine: () => console.log('showClosingLine'),
-    applyFinalGlow: () => console.log('applyFinalGlow'),
-    fadeToBlack: () => console.log('fadeToBlack'),
-    releaseGpuAndAudio: () => console.log('releaseGpuAndAudio'),
-    rebuildEngine: () => console.log('rebuildEngine'),
-    dimHud: () => console.log('dimHud'),
-    showConnectionDropped: () => console.log('showConnectionDropped'),
-    clearSensitiveCaches: () => console.log('clearSensitiveCaches'),
-    showRestingScreen: () => console.log('showRestingScreen'),
+    // Side-effects — these will be wired to the command bus (bus.ts) in Phase 12.
+    // Using noop functions now so state transitions are testable without side effects.
+    renderVeil: () => { /* noop — wired via bus */ },
+    createAudioContext: () => { /* noop */ },
+    showAdjustLine: () => { /* noop */ },
+    showCalmError: () => { /* noop */ },
+    showKnockPrompt: () => { /* noop */ },
+    verifyKnock: () => { /* noop */ },
+    startArrival: () => { /* noop */ },
+    startAmbientIfEnabled: () => { /* noop */ },
+    drawConstellation: () => { /* noop */ },
+    flyCameraToFocus: () => { /* noop */ },
+    engineTravel: () => { /* noop */ },
+    dimScene: () => { /* noop */ },
+    undimScene: () => { /* noop */ },
+    prefetchNeighbors: () => { /* noop */ },
+    unfoldPanel: () => { /* noop */ },
+    announceOpened: () => { /* noop */ },
+    foldPanel: () => { /* noop */ },
+    returnCamera: () => { /* noop */ },
+    restoreFocusAnchor: () => { /* noop */ },
+    openViewer: () => { /* noop */ },
+    trapFocus: () => { /* noop */ },
+    closeViewer: () => { /* noop */ },
+    releaseFocus: () => { /* noop */ },
+    revokeObjectUrls: () => { /* noop */ },
+    enterLampRoom: () => { /* noop */ },
+    exitLampRoom: () => { /* noop */ },
+    showNotYet: () => { /* noop */ },
+    railToFrontier: () => { /* noop */ },
+    thinAmbience: () => { /* noop */ },
+    showClosingLine: () => { /* noop */ },
+    applyFinalGlow: () => { /* noop */ },
+    fadeToBlack: () => { /* noop */ },
+    releaseGpuAndAudio: () => { /* noop */ },
+    rebuildEngine: () => { /* noop */ },
+    dimHud: () => { /* noop */ },
+    showConnectionDropped: () => { /* noop */ },
+    clearSensitiveCaches: () => { /* noop */ },
+    showRestingScreen: () => { /* noop */ },
   },
   guards: {
     sessionIsPending: () => false,

@@ -15,8 +15,7 @@ export class AudioSystem {
     if (this.isEnabled) return;
     this.isEnabled = true;
     this.ambientAudio?.play().catch(() => {
-      // Autoplay blocked, wait for user gesture
-      console.warn('Audio autoplay blocked. Waiting for gesture.');
+      // Autoplay blocked — the user gesture handler will retry on first interaction
     });
     this.fadeTo(0.5, 2000);
   }

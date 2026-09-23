@@ -1,6 +1,14 @@
 import styles from './MemoryPanel.module.css';
 import { SLText } from './SLText';
 
+export interface MemoryAsset {
+  assetId: string;
+  kind: 'image' | 'video' | 'audio';
+  variant: string;
+  alt?: string;
+  ordering: number;
+}
+
 export interface MemoryData {
   id: string;
   title: string;
@@ -10,7 +18,7 @@ export interface MemoryData {
   story: string;
   chapter?: { id: string, title: string } | null;
   location?: { labelSealed: string } | null;
-  assets?: Array<any>;
+  assets?: MemoryAsset[];
 }
 
 export interface MemoryPanelProps {

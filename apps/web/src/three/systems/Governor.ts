@@ -104,7 +104,9 @@ export class Governor {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('sl_tier', newTier);
-      } catch (e) {} // ignore quota errors
+      } catch {
+        // Ignore quota/security errors — tier preference is not critical
+      }
     }
 
     bus.emitEvent({ type: 'tierChanged', tier: newTier });
