@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import styles from './MemoryPanel.module.css';
 import { SLText } from './SLText';
 import { ReplyComposer } from './ReplyComposer';
+import { unsealContentIfE2EE } from '../lib/e2ee';
 
 export interface MemoryAsset {
   assetId: string;
@@ -32,6 +34,26 @@ export interface MemoryPanelProps {
 }
 
 export function MemoryPanel({ memory, onClose, onNext, onPrev, hasNext, hasPrev }: MemoryPanelProps) {
+  const [storyText, setStoryText] = useState(memory.story);
+  const [isE2EE, setIsE2EE] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void unsealContentIfE2EE(memory.story, {
+      table: 'memories',
+      column: 'story_sealed',
+      rowId: memory.id,
+    }).then(({ unsealed, isE2EE: e2eeActive }) => {
+      if (active) {
+        setStoryText(unsealed);
+        setIsE2EE(e2eeActive);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, [memory.story, memory.id]);
+
   // Simple format for the date based on precision (mocked here, should use a formatter)
   const displayDate = new Date(memory.occurredOn).toLocaleDateString(undefined, { 
     year: 'numeric', 
@@ -59,8 +81,15 @@ export function MemoryPanel({ memory, onClose, onNext, onPrev, hasNext, hasPrev 
           {memory.subtitle && <h2 className={styles.subtitle}>{memory.subtitle}</h2>}
           {memory.location && <div className={styles.location}>{memory.location.labelSealed}</div>}
           
+          {isE2EE && (
+            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--color-green-400, #7dbe9c)', margin: '4px 0 12px 0' }}>
+              <span>✦</span>
+              <span>Hardware E2EE Sealed</span>
+            </div>
+          )}
+
           <div className={styles.story}>
-            <SLText content={memory.story} />
+            <SLText content={storyText} />
           </div>
           
           {memory.assets && memory.assets.length > 0 && (

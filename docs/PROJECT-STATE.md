@@ -43,7 +43,7 @@
 | **9** | **Performance** | **COMPLETE** | PERF-01..10 | Code splitting, bundle budgets (< 120 KB gzip Veil), memory leak tests |
 | **10** | **Testing & Resilience** | **COMPLETE** | All | Playwright CDP virtual passkeys, axe a11y, load tests, restore drill |
 | **11** | **Production Infrastructure** | **CODE-COMPLETE** | DEP-*, REL-* | Terraform (WAF, backups, alarms), soft-launch CLI, runbooks (T11.6/T11.7 manual) |
-| **12** | **Iteration Extensions** | **IN PROGRESS** | EXT-* | T12.1 (Replies) & T12.2 (DBSC) COMPLETE; T12.3-T12.5 ADRs authored |
+| **12** | **Iteration Extensions** | **IN PROGRESS** | EXT-* | T12.1 (Replies), T12.2 (DBSC), T12.3 (E2EE) COMPLETE; T12.4-T12.5 ADRs authored |
 
 ---
 
@@ -56,7 +56,7 @@ All automated quality gates pass cleanly with **zero warnings and zero errors**:
 | **ESLint Warnings** | 0 warnings | 0 warnings | ✅ PASS |
 | **ESLint Errors** | 0 errors | 0 errors | ✅ PASS |
 | **TypeScript Errors** | 0 errors (`strict`, `noUncheckedIndexedAccess`) | 0 errors | ✅ PASS |
-| **Vitest Tests** | 100% pass | 52 / 52 pass across 8 test suites | ✅ PASS |
+| **Vitest Tests** | 100% pass | 68 / 68 pass across 10 test suites | ✅ PASS |
 | **Production Build** | Clean build for all workspaces | Clean builds for web, api, worker, tokens | ✅ PASS |
 | **Git Working Tree** | Clean, synchronized with origin/main | Up to date with `origin/main` | ✅ PASS |
 
@@ -82,8 +82,14 @@ All automated quality gates pass cleanly with **zero warnings and zero errors**:
    - **UI**: Silent registration in `Login.tsx` and status badge in `SecurityPanel.tsx`.
    - **Tests**: 22 tests in `dbsc.test.ts` and `dbsc.routes.test.ts`.
 
-3. **T12.3 Sealed Vault v2 (True E2EE)**:
-   - **ADR-015 Authored (Proposed / Deferred)**: Evaluated PRF extension (`hmac-secret`) vs KMS envelope encryption. Deferred per ADR-012 until browser PRF support matures and key loss recovery protocol is designed.
+3. **T12.3 Sealed Vault v2 (True E2EE) (COMPLETE)**:
+   - **ADR-015 Accepted**: Adopted Option 2 (Progressive WebCrypto Client-Side E2EE with ECDH P-256 and AES-KW).
+   - **Shared Crypto**: `packages/shared/src/e2ee.ts` containing pure WebCrypto cryptographic engine for ECDH P-256 forward-secret key agreement, HKDF-SHA256, AES-KW key wrapping, and AES-256-GCM row-bound envelope encryption (`v2.e2ee...`).
+   - **Schema**: `e2eeKeys` table in `schema.ts` holding enrolled participant public JWKs.
+   - **Endpoints**: `POST /api/auth/e2ee/keys` and `GET /api/auth/e2ee/keys` in `e2ee.routes.ts`.
+   - **Client**: `apps/web/src/lib/e2ee.ts` managing IndexedDB key vault (`sl_e2ee_vault`), auto-registration, and transparent unsealing.
+   - **UI**: Seamless client-side unsealing with "✦ Hardware E2EE Sealed" badges in `MemoryPanel.tsx` and `LetterViewer.tsx`; interactive benchmark in `SecurityPanel.tsx`.
+   - **Tests**: 11 unit tests in `packages/shared/src/e2ee.test.ts` and 5 route tests in `apps/api/src/routes/e2ee.test.ts`.
 
 4. **T12.4 HLS Adaptive Streaming**:
    - **ADR-016 Authored (Proposed / Deferred)**: Evaluated multi-bitrate HLS vs progressive MP4. Progressive MP4 retained as default for clips < 5 min; HLS pipeline stubbed for long video content.

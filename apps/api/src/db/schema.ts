@@ -320,4 +320,16 @@ export const deviceSessions = pgTable('device_sessions', {
   sessionIdIdx: index('device_sessions_session_id_idx').on(t.sessionId),
 }));
 
+export const e2eeKeys = pgTable('e2ee_keys', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  kid: text('kid').notNull(),
+  publicKey: text('public_key').notNull(),
+  algorithm: text('algorithm').notNull().default('ECDH-P256'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  userIdIdx: index('e2ee_keys_user_id_idx').on(t.userId),
+  kidIdx: index('e2ee_keys_kid_idx').on(t.kid),
+}));
+
 

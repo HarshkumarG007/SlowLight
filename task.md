@@ -128,7 +128,7 @@ Give the assistant **one task ID at a time**. Tick when its acceptance IDs (spec
 ## Phase 12 — Iteration (optional, each needs an ADR)
 - [x] T12.1 Recipient replies — ADR-013 accepted; sealed schema, API routes, ReplyComposer, and RepliesViewer complete
 - [x] T12.2 DBSC binding — ADR-014 accepted; ECDSA P-256 WebCrypto key manager, challenge/response proof API, schema & security panel integration complete
-- [ ] T12.3 Sealed Vault v2 (E2EE)
+- [x] T12.3 Sealed Vault v2 (E2EE) — ADR-015 accepted; WebCrypto ECDH P-256 key agreement, AES-KW wrapping, AES-256-GCM row-bound envelope, schema & benchmark complete
 - [ ] T12.4 HLS adaptive streaming
 - [ ] T12.5 Map view
 

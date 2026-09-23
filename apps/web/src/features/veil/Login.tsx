@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { registerDeviceBoundSession } from '../../lib/dbsc';
+import { registerE2EEPublicKey } from '../../lib/e2ee';
 
 export function Login() {
   const [status, setStatus] = useState('Idle');
@@ -26,6 +27,9 @@ export function Login() {
       
       // Progressive DBSC hardware device binding
       void registerDeviceBoundSession();
+
+      // Progressive Sealed Vault v2 E2EE enrollment
+      void registerE2EEPublicKey();
 
       setStatus('Success! You are now logged in.');
     } catch (err: unknown) {
