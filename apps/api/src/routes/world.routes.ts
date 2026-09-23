@@ -1,9 +1,8 @@
 import type { FastifyInstance } from 'fastify';
 import { createSecureRoute } from './registry.js';
-import { withActor, db } from '../db/index.js';
-import { chapters, memories, letters, futureEntries, siteTexts, userState } from '../db/schema.js';
+import { withActor } from '../db/index.js';
+import { chapters, memories, letters, futureEntries, userState } from '../db/schema.js';
 import { eq, asc } from 'drizzle-orm';
-import z from 'zod';
 
 export async function worldRoutes(app: FastifyInstance) {
   createSecureRoute(app, {

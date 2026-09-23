@@ -1,5 +1,4 @@
 import type { FastifyInstance, RouteOptions, RouteHandlerMethod } from 'fastify';
-import type { ActorRole } from '@slow-light/shared';
 
 export type AuthLevel = 'public' | 'user' | 'admin';
 export type PolicyRule = 'allow' | 'deny'; // placeholder for more complex AST
@@ -18,7 +17,9 @@ export function createSecureRoute(app: FastifyInstance, options: SecureRouteOpti
 
   app.route({
     ...options,
-    preHandler: async (request, reply) => {
+    preHandler: async (_request, _reply) => {
+      void _request;
+      void _reply;
       // In Phase 2 this will enforce auth and policy
       // For Phase 1 we just pass through
       if (options.auth === 'admin') {

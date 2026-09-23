@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Engine } from './Engine.js';
 
 vi.mock('three', async (importOriginal) => {
-  const actual: any = await importOriginal();
+  const actual = await importOriginal<Record<string, unknown>>();
   return {
     ...actual,
     WebGLRenderer: vi.fn().mockImplementation(() => ({
@@ -55,7 +55,11 @@ describe('Engine Memory Management', () => {
     
     // 2. Simulate some allocations
     // Since we mocked WebGLRenderer, we can get its instance from the engine
-    const renderer = (engine as any).renderer;
+    interface MockRenderer {
+      info: { memory: { geometries: number; textures: number } };
+      dispose: { mockImplementation: (fn: () => void) => void };
+    }
+    const renderer = (engine as unknown as { renderer: MockRenderer }).renderer;
     
     // Inject mock dispose behavior manually for our test
     renderer.dispose.mockImplementation(() => {

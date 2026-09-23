@@ -25,7 +25,7 @@ export async function authRoutes(app: FastifyInstance) {
     handler: async (request, reply) => {
       const ua = request.headers['user-agent'] || 'Unknown';
       const ip = request.ip || '0.0.0.0';
-      const token = await verifyLogin(request.body as any, ip, ua);
+      const token = await verifyLogin(request.body as Parameters<typeof verifyLogin>[0], ip, ua);
       
       reply.setCookie('__Host-sl_sid', token, {
         path: '/',
@@ -45,7 +45,7 @@ export async function authRoutes(app: FastifyInstance) {
     auth: 'public',
     policy: 'allow',
     handler: async (request, reply) => {
-      const { token, phrase } = request.body as any;
+      const { token, phrase } = request.body as { token: string; phrase: string };
       const options = await beginEnrollment(token, phrase);
       return reply.send(options);
     }
@@ -57,7 +57,10 @@ export async function authRoutes(app: FastifyInstance) {
     auth: 'public',
     policy: 'allow',
     handler: async (request, reply) => {
-      const { token, response } = request.body as any;
+      const { token, response } = request.body as {
+        token: string;
+        response: Parameters<typeof completeEnrollment>[1];
+      };
       const ua = request.headers['user-agent'] || 'Unknown';
       const ip = request.ip || '0.0.0.0';
       const sessionToken = await completeEnrollment(token, response, ua, ip);

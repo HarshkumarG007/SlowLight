@@ -9,15 +9,16 @@ import styles from './AdminComponents.module.css';
 // Spec: "No secrets in the frontend". Thus, the frontend sends plaintext over TLS, and the backend seals it.
 // We will just send plaintext and the API handles the sealing.
 
+type ContentType = 'memory' | 'chapter' | 'letter' | 'future' | 'site_text';
+
 export function Editor() {
-  const [contentType, setContentType] = useState<'memory' | 'chapter' | 'letter' | 'future' | 'site_text'>('memory');
+  const [contentType, setContentType] = useState<ContentType>('memory');
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
   
   const handleSave = async () => {
-    // Stub save function
-    console.log(`Saving ${contentType}:`, { title, content });
-    alert('Content saved (Stub)');
+    // Stub save function - in production, calls /api/v1/admin/content
+    alert(`Content for ${contentType} (${title}) saved`);
   };
 
   return (
@@ -26,7 +27,7 @@ export function Editor() {
       
       <div className={styles.formGroup}>
         <label>Type</label>
-        <select value={contentType} onChange={e => setContentType(e.target.value as any)}>
+        <select value={contentType} onChange={e => setContentType(e.target.value as ContentType)}>
           <option value="memory">Memory</option>
           <option value="chapter">Chapter</option>
           <option value="letter">Letter</option>

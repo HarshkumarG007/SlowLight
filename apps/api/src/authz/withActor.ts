@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm';
 import type { ActorRole } from '@slow-light/shared';
 
 export async function withActor<T>(
-  tx: any, 
+  tx: { execute: (query: unknown) => Promise<unknown> }, 
   actor: { role: ActorRole; userId?: string }, 
   fn: () => Promise<T>
 ): Promise<T> {

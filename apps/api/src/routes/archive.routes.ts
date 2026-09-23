@@ -1,8 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { createSecureRoute } from './registry.js';
-import { withActor, db } from '../db/index.js';
+import { withActor } from '../db/index.js';
 import { memories } from '../db/schema.js';
-import { eq, ilike, or } from 'drizzle-orm';
 import z from 'zod';
 
 const searchSchema = z.object({

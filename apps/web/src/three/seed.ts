@@ -9,7 +9,7 @@ export function getSyntheticWorld(seed: string = 'dev-seed-1'): WorldData {
   // Create 200 lights over the last 10 years
   for (let i = 0; i < 200; i++) {
     const age = Math.random() * 10 * YEAR;
-    let sig: 1 | 2 | 3 | 4 | 5 = 2;
+    let sig: 1 | 2 | 3 | 4 | 5;
     
     // Distribution of significance
     const r = Math.random();

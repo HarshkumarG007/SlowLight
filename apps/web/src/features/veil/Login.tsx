@@ -24,8 +24,9 @@ export function Login() {
       if (!verifyRes.ok) throw new Error('Login failed');
       
       setStatus('Success! You are now logged in.');
-    } catch (err: any) {
-      setStatus(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Login failed';
+      setStatus(`Error: ${message}`);
     }
   };
 

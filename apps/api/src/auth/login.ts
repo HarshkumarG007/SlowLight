@@ -1,9 +1,8 @@
 import { generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
-import type { AuthenticationResponseJSON } from '@simplewebauthn/server';
+import type { AuthenticationResponseJSON, AuthenticatorTransport } from '@simplewebauthn/server';
 import { db } from '../db/index.js';
 import { credentials, authChallenges, users } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
-import crypto from 'crypto';
 import { env } from '../config/env.js';
 import { createSession } from './sessions.js';
 
@@ -79,7 +78,7 @@ export async function verifyLogin(
       id: credential.credentialId.toString('base64url'),
       publicKey: new Uint8Array(credential.publicKey as Buffer),
       counter: Number(credential.signCount),
-      transports: credential.transports as any,
+      transports: credential.transports as AuthenticatorTransport[],
     },
   });
 

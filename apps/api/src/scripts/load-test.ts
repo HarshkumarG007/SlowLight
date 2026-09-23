@@ -32,7 +32,7 @@ async function worker(id: number, requestsPerWorker: number) {
       if (res.status === 200) success++;
       else if (res.status === 429) rateLimited++;
       else errors++;
-    } catch (err) {
+    } catch {
       errors++;
     }
   }

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable no-console */
 import { parseArgs } from 'node:util';
 // In a real implementation, we would use:
 // import { WAFV2Client, GetIPSetCommand, UpdateIPSetCommand } from '@aws-sdk/client-wafv2';

@@ -27,11 +27,16 @@ export async function mediaRoutes(app: FastifyInstance) {
       if (!assetId || !variant) return reply.code(400).send({ error: 'assetId and variant required' });
 
       try {
-        const result = await resolveMediaAccess(assetId, variant as any, session.userId);
+        const result = await resolveMediaAccess(
+          assetId,
+          variant as Parameters<typeof resolveMediaAccess>[1],
+          session.userId
+        );
         return reply.send(result);
-      } catch (err: any) {
-        const code = err.statusCode ?? 500;
-        return reply.code(code).send({ error: err.message });
+      } catch (err: unknown) {
+        const e = err as { statusCode?: number; message?: string };
+        const code = e.statusCode ?? 500;
+        return reply.code(code).send({ error: e.message });
       }
     },
   });
@@ -52,14 +57,15 @@ export async function mediaRoutes(app: FastifyInstance) {
       const session = await verifySession(sid);
       if (!session) return reply.code(401).send({ error: 'Unauthorized' });
 
-      const { requests } = request.body as { requests: Array<{ assetId: string; variant: string }> };
+      const { requests } = request.body as { requests: Parameters<typeof resolveMediaAccessBatch>[0] };
       if (!Array.isArray(requests)) return reply.code(400).send({ error: 'requests must be an array' });
 
       try {
-        const results = await resolveMediaAccessBatch(requests as any, session.userId);
+        const results = await resolveMediaAccessBatch(requests, session.userId);
         return reply.send({ results });
-      } catch (err: any) {
-        return reply.code(err.statusCode ?? 500).send({ error: err.message });
+      } catch (err: unknown) {
+        const e = err as { statusCode?: number; message?: string };
+        return reply.code(e.statusCode ?? 500).send({ error: e.message });
       }
     },
   });
@@ -84,7 +90,7 @@ export async function mediaRoutes(app: FastifyInstance) {
         return reply.code(400).send({ error: 'kind must be image, video, or audio' });
       }
 
-      const result = await createPresignedUpload(kind as any, session.userId);
+      const result = await createPresignedUpload(kind as 'image' | 'video' | 'audio', session.userId);
       return reply.send(result);
     },
   });
@@ -108,8 +114,9 @@ export async function mediaRoutes(app: FastifyInstance) {
       try {
         await completeUpload(id);
         return reply.send({ success: true });
-      } catch (err: any) {
-        return reply.code(err.statusCode ?? 500).send({ error: err.message });
+      } catch (err: unknown) {
+        const e = err as { statusCode?: number; message?: string };
+        return reply.code(e.statusCode ?? 500).send({ error: e.message });
       }
     },
   });

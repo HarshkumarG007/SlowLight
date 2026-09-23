@@ -1,5 +1,5 @@
 import { Scene, WebGLRenderer, Color, FogExp2, NoToneMapping, SRGBColorSpace } from 'three';
-import { EffectComposer, EffectPass, RenderPass, BloomEffect, VignetteEffect, NoiseEffect } from 'postprocessing';
+import { EffectComposer, EffectPass, RenderPass, BloomEffect, VignetteEffect, NoiseEffect, Effect } from 'postprocessing';
 import { bus, EngineCommand, QualityTier, WorldData } from './bus.js';
 import { ResourceTracker } from './ResourceTracker.js';
 import { Loop } from './Loop.js';
@@ -183,18 +183,16 @@ export class Engine {
       darkness: 0.5
     });
 
-    const effects: any[] = [bloom, vignette];
+    const effects: Effect[] = [bloom, vignette];
 
     if (this.currentTier === 'ultra' || this.currentTier === 'high') {
       const noise = new NoiseEffect({
         premultiply: true,
       });
-      // hack because pmndrs noise doesn't expose opacity directly, usually blendFunction
-      // For spec we'll just add it and adjust later if needed.
       effects.push(noise);
     }
 
-    const effectPass = new EffectPass(this.cameraSystem.camera, ...(effects as any));
+    const effectPass = new EffectPass(this.cameraSystem.camera, ...effects);
     this.composer.addPass(effectPass);
   }
 

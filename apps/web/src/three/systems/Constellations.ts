@@ -41,10 +41,12 @@ export class Constellations {
     const positions = new Float32Array(this.maxSegments * 6); // 2 verts per segment, 3 floats per vert
     const aArc = new Float32Array(this.maxSegments * 2); // 2 verts per segment
 
-    geometry.setAttribute('position', new Float32BufferAttribute(positions, 3));
-    geometry.setAttribute('aArc', new Float32BufferAttribute(aArc, 1));
-    (geometry.attributes.position as any).setUsage(DynamicDrawUsage);
-    (geometry.attributes.aArc as any).setUsage(DynamicDrawUsage);
+    const posAttr = new Float32BufferAttribute(positions, 3);
+    const arcAttr = new Float32BufferAttribute(aArc, 1);
+    posAttr.setUsage(DynamicDrawUsage);
+    arcAttr.setUsage(DynamicDrawUsage);
+    geometry.setAttribute('position', posAttr);
+    geometry.setAttribute('aArc', arcAttr);
 
     geometry.setDrawRange(0, 0);
 

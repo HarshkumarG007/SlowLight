@@ -30,8 +30,7 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
         setSrc(url);
         setLoading(false);
       }
-    }).catch(err => {
-      console.warn('Failed to get media URL', err);
+    }).catch(() => {
       if (mounted) {
         setError(true);
         setLoading(false);
@@ -43,7 +42,7 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
     };
   }, [assetId, variant, getUrl]);
 
-  const handleError = async (_e: React.SyntheticEvent | null) => {
+  const handleError = async () => {
     // If we hit a 403 (likely expired signed URL), try to refresh it
     // HTML5 media elements don't directly expose HTTP status codes in the error event,
     // but a network error during playback usually sets networkState to NETWORK_NO_SOURCE.
@@ -83,7 +82,7 @@ export function MediaAsset({ assetId, kind, variant, lqip, alt }: MediaAssetProp
     return (
       <div className={styles.errorState}>
         <span>Media could not be loaded.</span>
-        <button onClick={() => handleError(null)}>Retry</button>
+        <button onClick={() => handleError()}>Retry</button>
       </div>
     );
   }

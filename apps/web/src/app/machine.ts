@@ -136,4 +136,5 @@ export const experienceMachine = setup({
     backoffReconnect: fromPromise(async () => ({})),
     logout: fromPromise(async () => ({})),
   },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
 }).createMachine(machineJson as any);

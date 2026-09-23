@@ -3,7 +3,6 @@ import helmet from '@fastify/helmet';
 import cookie from '@fastify/cookie';
 import { env } from './config/env.js';
 import { logger } from './observability/logger.js';
-import fs from 'node:fs';
 import { authRoutes } from './routes/auth.routes.js';
 import { buildKeyRing } from './crypto/keyring.js';
 import { LocalKeyService, ensureLocalDevKey } from './crypto/localKeyService.js';

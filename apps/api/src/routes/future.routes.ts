@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { createSecureRoute } from './registry.js';
-import { withActor, db } from '../db/index.js';
+import { withActor } from '../db/index.js';
 import { futureEntries } from '../db/schema.js';
 import { eq } from 'drizzle-orm';
 import z from 'zod';

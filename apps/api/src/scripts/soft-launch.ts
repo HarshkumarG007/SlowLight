@@ -44,7 +44,6 @@ import {
 } from '../db/schema.js';
 import { logger } from '../observability/logger.js';
 import { randomBytes } from 'node:crypto';
-import { eq, ne } from 'drizzle-orm';
 
 const { values } = parseArgs({
   args: process.argv.slice(2),

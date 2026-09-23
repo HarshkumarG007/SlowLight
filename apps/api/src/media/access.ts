@@ -16,7 +16,7 @@
  *   video  → 900 s
  */
 import { db } from '../db/index.js';
-import { mediaAssets, memoryAssets, letterAssets } from '../db/schema.js';
+import { mediaAssets } from '../db/schema.js';
 import { eq, and, isNull } from 'drizzle-orm';
 import { env } from '../config/env.js';
 
@@ -44,8 +44,9 @@ export interface AccessResult {
 export async function resolveMediaAccess(
   assetId: string,
   variant: Variant,
-  _actorId: string, // used for future audit logging
+  actorId: string, // used for future audit logging
 ): Promise<AccessResult> {
+  void actorId;
   // Verify the asset exists, is ready, and not deleted
   const [asset] = await db
     .select({ id: mediaAssets.id, kind: mediaAssets.kind, variants: mediaAssets.variants })
