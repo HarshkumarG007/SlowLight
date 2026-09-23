@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import styles from './LetterViewer.module.css';
 import { SLText } from './SLText';
+import { ReplyComposer } from './ReplyComposer';
 
 export interface LetterAsset {
   assetId: string;
@@ -55,6 +56,7 @@ export function LetterViewer({ letterId, onClose }: LetterViewerProps) {
             <div className={styles.body}>
               <SLText content={letter.body} />
             </div>
+            <ReplyComposer targetType="letter" targetId={letter.id} />
           </div>
         )}
       </div>

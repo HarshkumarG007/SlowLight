@@ -1,6 +1,6 @@
 # ADR-013 — Recipient Replies
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-09-23  
 **Deciders:** Author  
 
@@ -8,35 +8,38 @@
 
 ## Context
 
-Phase 12 optional extension T12.1. Currently, Slow Light is a one-way experience: the Author creates and publishes, the Recipient reads. Adding Recipient replies creates a bidirectional, private conversation layer.
+Phase 12 optional extension T12.1. Currently, Slow Light is a one-way experience: the Author creates and publishes, the Recipient reads. Adding Recipient replies creates a bidirectional, private conversation layer where the Recipient can leave thoughts or reflections attached to memories or letters.
 
 ## Decision Drivers
 
-- Must not violate the "no read receipts anywhere" rule (UX-10).
-- Replies must be sealed (AES-256 envelope) before storage — same scheme as existing content (ADR-006).
-- Recipient activity must never be exposed to any admin endpoint (PRIV-04).
-- Replies are a significant scope change — adding a new user-generated content surface.
+- Must strictly adhere to the "no read receipts anywhere" rule (UX-10). The Recipient is never told if or when the Author opened their reply.
+- Replies must be sealed (AES-256-GCM envelope encryption with row-bound AAD) before database storage, matching ADR-006.
+- Recipient activity must not leak through telemetry, unsealed logs, or third parties (PRIV-04).
+- The feature must remain emotionally intimate, understated, and respectful of the dark/ambient museum aesthetic.
 
 ## Considered Options
 
-1. **Full reply UI** — Recipient composes and sends sealed text replies, visible to Author in admin.
-2. **Reaction-only** — Simple emoji reactions that don't require a text composition interface.
-3. **No replies (current)** — Keep the experience read-only.
+1. **Full sealed reply interface** — Recipient composes text thoughts (up to 5,000 characters) that are sealed on ingestion and viewable by the Author in the admin portal.
+2. **Reaction-only** — Simple emoji or celestial bookmark reactions without written text.
+3. **No replies** — Retain pure read-only experience.
 
 ## Decision
 
-**Option 3 — No replies in v1.** (Current default)
+**Adopt Option 1 — Full sealed reply interface.**
 
-This ADR is a **stub** for when the Author decides to add reply support. Switching to Option 1 requires:
-
-1. New Drizzle schema table: `replies` (sealed body, memoryId, letterId FK, createdAt).
-2. New API routes: `POST /replies`, `GET /replies` (author-only, returns sealed content).
-3. New UI component: `ReplyComposer.tsx` — text area + seal + submit.
-4. Update threat model: a second principal (Recipient) now generates content, creating SSRF/injection surface.
-5. Update RLS policies.
-6. Human security review required (CODEOWNERS: auth, authz, crypto).
+### Architecture & Controls
+1. **Drizzle Schema**: Table `replies` (`id`, `userId`, `targetType`, `targetId`, `bodySealed`, `createdAt`).
+2. **Encryption**: AES-256-GCM envelope encryption with AAD bound to `sl:v1|replies|body_sealed|<rowId>|<kid>`. Plaintext exists only in process memory during composition and authorized unsealing.
+3. **API Routes**:
+   - `POST /api/v1/replies`: authenticated recipient submits note. Server validates, seals, and inserts via `withActor()`.
+   - `GET /api/v1/replies`: recipient reads their own replies; author reads unsealed replies across memories/letters.
+4. **UI Components**:
+   - Recipient: `ReplyComposer.tsx` embedded gracefully at the end of `MemoryPanel` and `LetterViewer`.
+   - Author: `RepliesViewer.tsx` in the Admin SPA to read received thoughts.
+5. **No Read Receipts**: No `read_at` or `viewed_at` timestamps are exposed to the client.
 
 ## Consequences
 
-- **If adopted:** 1–2 sprint effort. Recipient engagement increases, but privacy threat surface expands.
-- **If not adopted:** Application remains pure one-way. Simpler security posture.
+- **Positive**: Emotional depth and reciprocity increase significantly.
+- **Security**: Content remains secure at rest (protected against database snapshot leaks).
+- **Privacy**: No tracking or delivery indicators preserve the pressure-free sanctuary feel.

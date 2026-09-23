@@ -1,5 +1,6 @@
 import styles from './MemoryPanel.module.css';
 import { SLText } from './SLText';
+import { ReplyComposer } from './ReplyComposer';
 
 export interface MemoryAsset {
   assetId: string;
@@ -73,6 +74,8 @@ export function MemoryPanel({ memory, onClose, onNext, onPrev, hasNext, hasPrev 
               ))}
             </div>
           )}
+
+          <ReplyComposer targetType="memory" targetId={memory.id} />
         </div>
         
         <footer className={styles.footer}>

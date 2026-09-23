@@ -75,3 +75,9 @@ export function getKeyRing(): KeyRing {
   if (!_ring) throw new Error('KEY_RING_NOT_INITIALIZED: call buildKeyRing() at startup');
   return _ring;
 }
+
+/** Injects an in-memory key ring for unit test isolation. */
+export function setKeyRingForTesting(ring: KeyRing): void {
+  _ring = ring as unknown as BootKeyRing;
+}
+

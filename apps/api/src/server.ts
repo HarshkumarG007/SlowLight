@@ -14,6 +14,7 @@ import { archiveRoutes } from './routes/archive.routes.js';
 import { futureRoutes } from './routes/future.routes.js';
 import { adminRoutes } from './routes/admin.routes.js';
 import { securityRoutes } from './routes/security.routes.js';
+import { repliesRoutes } from './routes/replies.routes.js';
 
 const app = fastify({
   logger: logger,
@@ -85,6 +86,7 @@ const start = async () => {
     app.register(futureRoutes);
     app.register(adminRoutes);
     app.register(securityRoutes);
+    app.register(repliesRoutes);
 
     await app.listen({ port: env.PORT, host: '0.0.0.0' });
     app.log.info(`Server listening on port ${env.PORT}`);

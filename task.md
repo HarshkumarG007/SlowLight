@@ -126,8 +126,9 @@ Give the assistant **one task ID at a time**. Tick when its acceptance IDs (spec
 - [ ] T11.7 Week-one monitoring review and iteration list — **post-launch, Author action required**
 
 ## Phase 12 — Iteration (optional, each needs an ADR)
-- [ ] T12.1 Recipient replies
+- [x] T12.1 Recipient replies — ADR-013 accepted; sealed schema, API routes, ReplyComposer, and RepliesViewer complete
 - [ ] T12.2 DBSC binding
 - [ ] T12.3 Sealed Vault v2 (E2EE)
 - [ ] T12.4 HLS adaptive streaming
 - [ ] T12.5 Map view
+

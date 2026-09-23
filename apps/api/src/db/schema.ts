@@ -296,3 +296,16 @@ export const favorites = pgTable('favorites', {
   letterId: uuid('letter_id').references(() => letters.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const replies = pgTable('replies', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  targetType: text('target_type', { enum: ['memory', 'letter'] }).notNull(),
+  targetId: uuid('target_id').notNull(),
+  bodySealed: text('body_sealed').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  targetIdx: index('replies_target_idx').on(t.targetType, t.targetId),
+  userIdIdx: index('replies_user_id_idx').on(t.userId),
+}));
+

@@ -3,10 +3,10 @@ The assistant reads this at the start of every task and appends to it at the end
 
 ## 1. Current status
 - **Date:** 2026-09-23
-- **Workflow stage:** All phases 0–11 implementation COMPLETE
-- **Current phase / task:** Awaiting Author actions: T11.6 (Recipient enrollment in person), T11.7 (week-one monitoring review)
-- **Last completed task:** T11.5 Soft Launch Script + project task.md final sync
-- **Next task:** T11.6 — Author must enroll Recipient in person. Then T12.x optional extensions (each needs an ADR first)
+- **Workflow stage:** Phase 12 Extensions (T12.1 COMPLETE); core phases 0–11 COMPLETE
+- **Current phase / task:** T12.1 Recipient Replies implemented & tested; awaiting Author physical actions (T11.6, T11.7)
+- **Last completed task:** T12.1 Recipient Replies (ADR-013 accepted, sealed replies schema, API, ReplyComposer, RepliesViewer)
+- **Next task:** Optional Phase 12 extensions (T12.2 DBSC, T12.3 E2EE, T12.4 HLS, T12.5 Map View) or Author launch actions
 - **Blockers:** none (code complete); two manual Author actions remain before go-live
 - **Open questions for the Author (must answer before listed phase):**
   - Domain name — needed before WebAuthn RP ID is set on real deploy (Phase 11 apply)
@@ -100,6 +100,7 @@ New inputs, boundaries, secrets, or log lines introduced per task, and how each 
 ## 10. Session log (newest first)
 | Date | Task | What changed | Evidence (tests/commands) | Follow-ups |
 |---|---|---|---|---|
+| 2026-09-23 | T12.1 Recipient Replies | Accepted ADR-013. Added `replies` table in `apps/api/src/db/schema.ts` with AES-256-GCM envelope encryption and row-bound AAD. Created `POST /api/v1/replies` and `GET /api/v1/replies` in `replies.routes.ts`. Built `ReplyComposer` in web client (embedded in `MemoryPanel` and `LetterViewer`) and `RepliesViewer` in Admin SPA. Created `replies.test.ts` with 4 tests verifying sealing and unsealing. All checks pass with 0 warnings. | `pnpm test` (17 tests in api, 30 tests monorepo-wide pass); `pnpm typecheck` clean; `pnpm lint` 0 problems; `pnpm build` clean | Done |
 | 2026-09-23 | Zero-Warning Polish & Master Walkthrough | Achieved **0 errors and 0 warnings** across the entire monorepo. Fixed all remaining `any` types in `apps/api` (`login.ts`, `auth.routes.ts`, `media.routes.ts`, `withActor.ts`) and `apps/web` (`Editor.tsx`, `Enrollment.tsx`, `Login.tsx`, `Engine.ts`, `Constellations.ts`, `memory-leak.test.ts`, `sl-text.test.ts`). Removed unused imports and variables across all route handlers. Updated `walkthrough.md` to comprehensively document Phases 0–12, production infrastructure, operational runbooks, and verification evidence. | `pnpm lint`: 0 problems; `pnpm typecheck`: 0 errors; `pnpm test`: 8/8 pass | Project fully synchronized and ready for Author actions |
 | 2026-09-23 | Final Polish | Fixed 71 lint warnings: converted `console.log` stubs in `machine.ts` to noop comments, fixed `any` types in `MemoryPanel`, `Logbook`, `LetterViewer`, `MediaAsset`, removed empty catch block in `Governor.ts`. Created Phase 12 ADR stubs (013-017). Updated project `task.md` to reflect completed phases. | `pnpm lint` reduced from 71 to ~30 warnings; `pnpm test` 8/8 pass; `pnpm typecheck` clean | Done |
 | 2026-09-22 | Phase 10 | Implemented Playwright setup with CDP virtual authenticator stub, `@axe-core/playwright` accessibility audit, load testing stub, and restore-drill stub, integrated into `.github/workflows/e2e.yml`. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed cleanly. | Start Phase 11 |
