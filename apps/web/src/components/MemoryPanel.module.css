@@ -102,6 +102,28 @@
   color: var(--color-ink-500);
 }
 
+.locationBtn {
+  background: transparent;
+  border: 1px solid rgba(220, 200, 160, 0.15);
+  color: var(--color-ink-300, #c0c6d4);
+  font-size: var(--text-sm, 0.85rem);
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  transition: all 0.2s ease;
+}
+
+.locationBtn:hover {
+  background: rgba(238, 210, 139, 0.12);
+  border-color: rgba(238, 210, 139, 0.45);
+  color: #eed28b;
+}
+
 .story {
   margin-top: var(--spacing-4);
 }

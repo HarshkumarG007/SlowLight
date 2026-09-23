@@ -43,7 +43,7 @@
 | **9** | **Performance** | **COMPLETE** | PERF-01..10 | Code splitting, bundle budgets (< 120 KB gzip Veil), memory leak tests |
 | **10** | **Testing & Resilience** | **COMPLETE** | All | Playwright CDP virtual passkeys, axe a11y, load tests, restore drill |
 | **11** | **Production Infrastructure** | **CODE-COMPLETE** | DEP-*, REL-* | Terraform (WAF, backups, alarms), soft-launch CLI, runbooks (T11.6/T11.7 manual) |
-| **12** | **Iteration Extensions** | **IN PROGRESS** | EXT-* | T12.1 (Replies), T12.2 (DBSC), T12.3 (E2EE), T12.4 (HLS) COMPLETE; T12.5 ADR authored |
+| **12** | **Iteration Extensions** | **COMPLETE** | EXT-* | T12.1 (Replies), T12.2 (DBSC), T12.3 (E2EE), T12.4 (HLS), T12.5 (Map View) ALL COMPLETE |
 
 ---
 
@@ -56,7 +56,7 @@ All automated quality gates pass cleanly with **zero warnings and zero errors**:
 | **ESLint Warnings** | 0 warnings | 0 warnings | ✅ PASS |
 | **ESLint Errors** | 0 errors | 0 errors | ✅ PASS |
 | **TypeScript Errors** | 0 errors (`strict`, `noUncheckedIndexedAccess`) | 0 errors | ✅ PASS |
-| **Vitest Tests** | 100% pass | 77 / 77 pass across 11 test suites | ✅ PASS |
+| **Vitest Tests** | 100% pass | 94 / 94 pass across 14 test suites | ✅ PASS |
 | **Production Build** | Clean build for all workspaces | Clean builds for web, api, worker, tokens | ✅ PASS |
 | **Git Working Tree** | Clean, synchronized with origin/main | Up to date with `origin/main` | ✅ PASS |
 
@@ -98,8 +98,12 @@ All automated quality gates pass cleanly with **zero warnings and zero errors**:
    - **Client Player**: `apps/web/src/components/HLSPlayer.tsx` providing native Apple HLS on iOS/Safari, adaptive quality ladder switcher, progressive fallback, and seamless playback position preservation across signed URL renewals.
    - **Tests**: 5 unit tests in `apps/worker/src/hls.test.ts` and 4 access tests in `apps/api/src/media/access.test.ts`.
 
-5. **T12.5 Map View**:
-   - **ADR-017 Authored (Proposed / Deferred)**: Evaluated self-hosted Protomaps vs inline SVG vs text-only location. Text-only retained to preserve ADR-011 (zero third-party requests) and PRIV-03 (location privacy).
+5. **T12.5 Map View (COMPLETE)**:
+   - **ADR-017 Accepted**: Adopted Option 3 (Inline Offline SVG World Map with Coarse Projection).
+   - **Projection Engine**: `packages/shared/src/map.ts` implementing equirectangular `(lat, lng) -> (x, y)` projection, coordinate privacy coarsening (±0.1° / ~11 km city resolution), and chronological curved journey trails.
+   - **API Endpoint**: `GET /api/v1/map` in `apps/api/src/routes/map.routes.ts` unseals labels/coords, filters hidden precision, enforces server-side coarsening, and returns `{ pins, journeyPath }`.
+   - **Client Experience**: `apps/web/src/components/MapView.tsx` delivering interactive SVG world map with smooth pan/zoom, golden starlight pins, constellation journey trails, preview card popups, and deep-linking into `MemoryPanel`.
+   - **Tests**: 13 unit tests in `packages/shared/src/map.test.ts` and 4 route tests in `apps/api/src/routes/map.test.ts`.
 
 ---
 

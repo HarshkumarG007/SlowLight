@@ -3,6 +3,8 @@ import styles from './MemoryPanel.module.css';
 import { SLText } from './SLText';
 import { ReplyComposer } from './ReplyComposer';
 import { unsealContentIfE2EE } from '../lib/e2ee';
+import { MapView } from './MapView';
+import type { MapMemoryPin } from '@slow-light/shared';
 
 export interface MemoryAsset {
   assetId: string;
@@ -19,8 +21,8 @@ export interface MemoryData {
   occurredOn: string;
   datePrecision: string;
   story: string;
-  chapter?: { id: string, title: string } | null;
-  location?: { labelSealed: string } | null;
+  chapter?: { id: string; title: string } | null;
+  location?: { id?: string; labelSealed: string; lat?: number; lng?: number } | null;
   assets?: MemoryAsset[];
 }
 
@@ -36,6 +38,7 @@ export interface MemoryPanelProps {
 export function MemoryPanel({ memory, onClose, onNext, onPrev, hasNext, hasPrev }: MemoryPanelProps) {
   const [storyText, setStoryText] = useState(memory.story);
   const [isE2EE, setIsE2EE] = useState(false);
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -61,6 +64,25 @@ export function MemoryPanel({ memory, onClose, onNext, onPrev, hasNext, hasPrev 
     day: memory.datePrecision === 'day' ? 'numeric' : undefined
   });
 
+  const locationPin: MapMemoryPin | null =
+    memory.location &&
+    typeof memory.location.lat === 'number' &&
+    typeof memory.location.lng === 'number'
+      ? {
+          id: memory.location.id ?? memory.id,
+          memoryId: memory.id,
+          title: memory.title,
+          occurredOn: memory.occurredOn,
+          emotion: null,
+          significance: 3,
+          locationId: memory.location.id ?? 'loc-1',
+          label: memory.location.labelSealed,
+          lat: memory.location.lat,
+          lng: memory.location.lng,
+          precision: 'city',
+        }
+      : null;
+
   return (
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.panel} onClick={e => e.stopPropagation()}>
@@ -79,7 +101,23 @@ export function MemoryPanel({ memory, onClose, onNext, onPrev, hasNext, hasPrev 
         <div className={styles.content}>
           <h1 className={styles.title}>{memory.title}</h1>
           {memory.subtitle && <h2 className={styles.subtitle}>{memory.subtitle}</h2>}
-          {memory.location && <div className={styles.location}>{memory.location.labelSealed}</div>}
+          {memory.location && (
+            <div>
+              {locationPin ? (
+                <button
+                  type="button"
+                  className={styles.locationBtn}
+                  onClick={() => setIsMapOpen(true)}
+                  title="Explore location on constellation map"
+                >
+                  <span>✦</span>
+                  <span>{memory.location.labelSealed}</span>
+                </button>
+              ) : (
+                <div className={styles.location}>{memory.location.labelSealed}</div>
+              )}
+            </div>
+          )}
           
           {isE2EE && (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.8rem', color: 'var(--color-green-400, #7dbe9c)', margin: '4px 0 12px 0' }}>
@@ -126,6 +164,14 @@ export function MemoryPanel({ memory, onClose, onNext, onPrev, hasNext, hasPrev 
           </button>
         </footer>
       </div>
+
+      {isMapOpen && locationPin && (
+        <MapView
+          pins={[locationPin]}
+          focusedMemoryId={memory.id}
+          onClose={() => setIsMapOpen(false)}
+        />
+      )}
     </div>
   );
 }

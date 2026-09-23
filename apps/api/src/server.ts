@@ -17,6 +17,7 @@ import { securityRoutes } from './routes/security.routes.js';
 import { repliesRoutes } from './routes/replies.routes.js';
 import { dbscRoutes } from './routes/dbsc.routes.js';
 import { e2eeRoutes } from './routes/e2ee.routes.js';
+import { mapRoutes } from './routes/map.routes.js';
 
 const app = fastify({
   logger: logger,
@@ -91,6 +92,7 @@ const start = async () => {
     app.register(repliesRoutes);
     app.register(dbscRoutes);
     app.register(e2eeRoutes);
+    app.register(mapRoutes);
 
     await app.listen({ port: env.PORT, host: '0.0.0.0' });
     app.log.info(`Server listening on port ${env.PORT}`);

@@ -1,0 +1,349 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(4, 7, 14, 0.88);
+  backdrop-filter: blur(12px);
+  padding: var(--spacing-4, 16px);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.modal {
+  background-color: #070a14;
+  border: 1px solid rgba(220, 200, 160, 0.18);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(220, 200, 160, 0.1);
+  width: 95vw;
+  max-width: 1200px;
+  height: 88vh;
+  max-height: 820px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(20, 24, 38, 0.7) 0%, rgba(10, 13, 22, 0.4) 100%);
+  z-index: 5;
+}
+
+.titleArea {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.title {
+  font-family: var(--font-display, serif);
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #f2ede2;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.titleIcon {
+  color: #eed28b;
+  font-size: 0.95rem;
+}
+
+.subtitle {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.8rem;
+  color: #8c96ab;
+  letter-spacing: 0.02em;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btnControl {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cfd6e4;
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.btnControl:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(220, 200, 160, 0.35);
+  color: #f7f5f0;
+}
+
+.btnControlActive {
+  background: rgba(238, 210, 139, 0.15);
+  border-color: #eed28b;
+  color: #eed28b;
+}
+
+.closeBtn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #8c96ab;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2ede2;
+}
+
+.mapViewport {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  cursor: grab;
+  background-color: #070a14;
+}
+
+.mapViewport:active {
+  cursor: grabbing;
+}
+
+.svgMap {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.oceanBg {
+  fill: #070a14;
+}
+
+.graticule {
+  stroke: rgba(255, 255, 255, 0.04);
+  stroke-width: 0.75;
+  stroke-dasharray: 2 4;
+}
+
+.equator {
+  stroke: rgba(238, 210, 139, 0.12);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.landmass {
+  fill: #121829;
+  stroke: #1e2840;
+  stroke-width: 0.8;
+  transition: fill 0.2s ease;
+}
+
+.journeyTrail {
+  fill: none;
+  stroke: rgba(238, 210, 139, 0.45);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 5;
+  stroke-linecap: round;
+}
+
+.pinGroup {
+  cursor: pointer;
+  outline: none;
+}
+
+.pinHalo {
+  fill: #eed28b;
+  opacity: 0.18;
+  transform-origin: center;
+  animation: pulseHalo 3s ease-in-out infinite;
+}
+
+.pinCore {
+  fill: #eed28b;
+  stroke: #ffffff;
+  stroke-width: 1.2;
+  filter: drop-shadow(0 0 4px rgba(238, 210, 139, 0.8));
+  transition: transform 0.2s ease, fill 0.2s ease;
+}
+
+.pinGroup:hover .pinCore,
+.pinGroup:focus .pinCore {
+  transform: scale(1.35);
+  fill: #fff7d6;
+}
+
+.pinGroupActive .pinCore {
+  fill: #ffffff;
+  stroke: #eed28b;
+  stroke-width: 2;
+  transform: scale(1.5);
+}
+
+.floatingCard {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  max-width: 320px;
+  background: rgba(14, 18, 30, 0.92);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(238, 210, 139, 0.3);
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+  animation: slideUp 0.2s ease-out;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.cardPlace {
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #eed28b;
+  font-weight: 600;
+}
+
+.cardDate {
+  font-size: 0.72rem;
+  color: #8c96ab;
+}
+
+.cardTitle {
+  font-family: var(--font-display, serif);
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: #f7f5f0;
+  margin: 0 0 10px 0;
+  line-height: 1.35;
+}
+
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cardEmotion {
+  font-size: 0.72rem;
+  color: #a4b0c6;
+  text-transform: capitalize;
+}
+
+.cardOpenBtn {
+  background: #eed28b;
+  color: #0c101d;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.cardOpenBtn:hover {
+  opacity: 0.88;
+}
+
+.zoomOverlay {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 8;
+}
+
+.zoomBtn {
+  width: 32px;
+  height: 32px;
+  background: rgba(14, 18, 30, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cfd6e4;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+}
+
+.zoomBtn:hover {
+  background: rgba(238, 210, 139, 0.18);
+  border-color: #eed28b;
+  color: #eed28b;
+}
+
+.emptyNotice {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #8c96ab;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+@keyframes pulseHalo {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.18;
+  }
+  50% {
+    transform: scale(1.6);
+    opacity: 0.32;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
