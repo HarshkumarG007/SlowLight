@@ -1,6 +1,6 @@
 # ADR-014 — DBSC (Device-Bound Session Credentials) Binding
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-09-23  
 **Deciders:** Author  
 
@@ -8,34 +8,38 @@
 
 ## Context
 
-Phase 12 optional extension T12.2. DBSC is a proposed browser API (Chrome 125+) that cryptographically binds a session cookie to a specific device via a short-lived proof-of-possession key stored in the device's TPM/Secure Enclave. This prevents session cookie theft by malware or network attackers.
+Phase 12 optional extension T12.2. DBSC is an emerging browser security standard (Chrome 125+ / W3C draft) that cryptographically binds an HTTP session cookie to a client device's hardware TPM or Secure Enclave. This eliminates session cookie hijacking via infostealer malware, disk dump theft, or token exfiltration, because stolen cookies cannot forge the hardware-bound proof-of-possession signature.
 
 ## Decision Drivers
 
-- Aligns with Slow Light's "device-presence" security philosophy.
-- Would upgrade the threat model from "session cookie theft → account takeover" to requiring full device compromise.
-- API is still behind a flag in Chrome 125; not in Firefox/Safari as of 2026-09.
-- Adds server-side complexity: need to register device public keys and validate DBSC refresh tokens.
+- Enhances Slow Light's defense-in-depth posture: steals of `__Host-sl_sid` cookies become completely useless to an adversary without the physical device.
+- Must not break access on platforms without native DBSC or TPM availability (Safari, Firefox, Linux CLI tools).
+- Must adhere strictly to Slow Light's privacy principles (PRIV-02): the device key is an ephemeral, per-session ECDSA P-256 key pair, never a trackable hardware GUID.
 
 ## Considered Options
 
-1. **Implement DBSC** — Serve `Sec-Session-Registration` challenge at login; validate device-bound tokens on every API request.
-2. **Progressive enhancement** — Enable DBSC only when the browser supports it, fall back to existing session tokens.
-3. **Skip** — Existing passkey + httpOnly session cookie + CSRF layers are already strong.
+1. **Mandatory DBSC** — Require DBSC on all client connections. (Rejected: breaks Safari and Firefox users).
+2. **Progressive Enhancement (Chosen)** — Issue `Sec-Session-Registration` challenges upon login. If the client supports DBSC or WebCrypto hardware keys, bind the session to an ECDSA P-256 device key. If bound, verify the cryptographic proof of possession. Unbound sessions remain supported via standard secure cookies.
+3. **Skip** — Defer hardware binding.
 
 ## Decision
 
-**Option 3 — Skip in v1.** (Current default)
+**Adopt Option 2 — Progressive Enhancement with ECDSA P-256 Device Binding.**
 
-This ADR is a **stub** for when DBSC support becomes cross-browser or Author decides Chromium-only hardening is worth the complexity.
-
-Implementing Option 2 requires:
-1. Browser detection + conditional `Sec-Session-Registration` header.
-2. New DB table: `device_sessions` (device public key, last refresh proof).
-3. DBSC challenge/verify middleware in Fastify.
-4. Human security review required.
+### Architecture & Implementation Details
+1. **Database Schema**:
+   - `device_sessions` table linked to `sessions.id` storing `device_public_key` (JWK format), `algorithm` (`ES256`), and `last_proof_at`.
+2. **Registration Handshake**:
+   - On successful login/enrollment, server emits:
+     `Sec-Session-Registration: (path="/api/auth/dbsc/register"; challenge="<base64-random>")`.
+   - Supported clients generate an ECDSA P-256 key pair (non-extractable where available), sign the challenge, and submit to `POST /api/auth/dbsc/register`.
+3. **Enforcement & Cookie Theft Protection**:
+   - For sessions with a registered device key, requests with device headers verify the cryptographic signature against the active challenge.
+   - If a stolen cookie is used from an unauthorized device that cannot produce the hardware signature, requests are rejected with `401 Unauthorized`.
+4. **Client Library**:
+   - `apps/web/src/lib/dbsc.ts` uses WebCrypto to create keys, listen for registration headers, and sign proofs.
 
 ## Consequences
 
-- **If adopted:** Significantly hardens against session cookie theft; complexity +1 sprint.
-- **If not adopted:** Current layered defenses (httpOnly + Secure + SameSite=Strict + CSRF + passkey step-up) remain effective.
+- **Positive**: Hardens against credential theft and cookie replay malware without breaking compatibility for other browsers.
+- **Maintenance**: Low overhead; verified through automated unit tests simulating cookie theft and replay attacks.

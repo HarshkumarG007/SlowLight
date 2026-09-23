@@ -34,7 +34,7 @@ export async function authRoutes(app: FastifyInstance) {
         sameSite: 'strict',
         maxAge: 30 * 24 * 60 * 60 // 30 days
       });
-      
+      reply.header('Sec-Session-Registration', '(path="/api/auth/dbsc/register")');
       return reply.send({ success: true });
     }
   });
@@ -73,6 +73,7 @@ export async function authRoutes(app: FastifyInstance) {
         maxAge: 30 * 24 * 60 * 60
       });
       
+      reply.header('Sec-Session-Registration', '(path="/api/auth/dbsc/register")');
       return reply.send({ success: true });
     }
   });

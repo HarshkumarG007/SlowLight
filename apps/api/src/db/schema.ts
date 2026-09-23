@@ -309,3 +309,15 @@ export const replies = pgTable('replies', {
   userIdIdx: index('replies_user_id_idx').on(t.userId),
 }));
 
+export const deviceSessions = pgTable('device_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sessionId: uuid('session_id').notNull().references(() => sessions.id, { onDelete: 'cascade' }),
+  devicePublicKey: text('device_public_key').notNull(),
+  algorithm: text('algorithm').notNull().default('ES256'),
+  lastProofAt: timestamp('last_proof_at', { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => ({
+  sessionIdIdx: index('device_sessions_session_id_idx').on(t.sessionId),
+}));
+
+

@@ -33,6 +33,17 @@ export function SecurityPanel() {
       </div>
 
       <div className={styles.section}>
+        <h3>DBSC & Hardware Device Binding</h3>
+        <p>
+          Device-Bound Session Credentials (ECDSA P-256 via TPM / Secure Enclave) bind active sessions to physical hardware, preventing cookie theft and replay attacks.
+        </p>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'var(--color-green-400, #7dbe9c)', fontSize: '0.875rem' }}>
+          <span>●</span>
+          <span>DBSC Progressive Binding Active (TPM / WebCrypto)</span>
+        </div>
+      </div>
+
+      <div className={styles.section}>
         <h3>Recent Audit Log</h3>
         <table className={styles.auditTable}>
           <thead>

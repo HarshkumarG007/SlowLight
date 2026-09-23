@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { startAuthentication } from '@simplewebauthn/browser';
+import { registerDeviceBoundSession } from '../../lib/dbsc';
 
 export function Login() {
   const [status, setStatus] = useState('Idle');
@@ -23,6 +24,9 @@ export function Login() {
       });
       if (!verifyRes.ok) throw new Error('Login failed');
       
+      // Progressive DBSC hardware device binding
+      void registerDeviceBoundSession();
+
       setStatus('Success! You are now logged in.');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Login failed';
