@@ -10,7 +10,8 @@
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
-    "e2e": "pnpm -r run e2e"
+    "e2e": "pnpm -r run e2e",
+    "cli": "pnpm --filter @slow-light/api run cli"
   },
   "packageManager": "pnpm@12.5.1",
   "engines": {
