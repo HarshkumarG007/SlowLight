@@ -2,11 +2,11 @@
 The assistant reads this at the start of every task and appends to it at the end. Keep entries short, dated, and factual. Never record secrets or personal memories here.
 
 ## 1. Current status
-- **Date:** 2026-09-22
-- **Workflow stage:** Phase 10 (Testing) Implementation Complete
-- **Current phase / task:** Phase 10 complete
-- **Last completed task:** T10.5 CI Tooling
-- **Next task:** Phase 11 (Production)
+- **Date:** 2026-09-23
+- **Workflow stage:** Phase 11 (Production) Implementation Complete
+- **Current phase / task:** Phase 11 complete
+- **Last completed task:** T11.5 Soft Launch Script
+- **Next task:** Phase 12 (Optional Extensions) or final review
 - **Blockers:** none
 - **Open questions for the Author (must answer before listed phase):**
   - Domain name — needed before Phase 2 (WebAuthn RP ID is origin-bound)
@@ -100,6 +100,7 @@ New inputs, boundaries, secrets, or log lines introduced per task, and how each 
 ## 10. Session log (newest first)
 | Date | Task | What changed | Evidence (tests/commands) | Follow-ups |
 |---|---|---|---|---|
+| 2026-09-23 | Phase 11 | Created `infra/waf.tf` (WAFv2 with geo-fence, anon-IP block, admin door, rate limit), `infra/backups.tf` (cross-account daily snapshots), `infra/alarms.tf` (CloudWatch 5xx/RDS/WAF alerts), `docs/runbooks/disaster-recovery.md`, `docs/runbooks/admin-door.md`, and `apps/api/src/scripts/soft-launch.ts`. | `pnpm typecheck`, `pnpm lint` passed cleanly. | Phase 12 optional or final review |
 | 2026-09-22 | Phase 10 | Implemented Playwright setup with CDP virtual authenticator stub, `@axe-core/playwright` accessibility audit, load testing stub, and restore-drill stub, integrated into `.github/workflows/e2e.yml`. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed cleanly. | Start Phase 11 |
 | 2026-09-22 | Phase 9 | Wrapped `WorldCanvas` in `React.lazy()` for code splitting, added Drizzle `index()` calls to `schema.ts`, created `subset-fonts.ts` stub, added `memory-leak.test.ts` to assert dispose logic, and created `.github/workflows/performance.yml`. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed cleanly. | Start Phase 10 |
 | 2026-09-22 | Phase 8 | Implemented Trusted Types, CSP report route, `Clear-Site-Data` on logout, cryptographic audit log anchoring, key rotation drill script, and GitHub Actions security baseline. | `pnpm typecheck`, `pnpm test`, `pnpm lint` passed natively. | Start Phase 9 |

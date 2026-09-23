@@ -3,7 +3,6 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Engine } from './Engine.js';
-import * as THREE from 'three';
 
 vi.mock('three', async (importOriginal) => {
   const actual: any = await importOriginal();
