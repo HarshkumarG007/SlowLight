@@ -3,10 +3,10 @@ The assistant reads this at the start of every task and appends to it at the end
 
 ## 1. Current status
 - **Date:** 2026-09-23
-- **Workflow stage:** Phase 12 Extensions (T12.1 COMPLETE); core phases 0–11 COMPLETE
-- **Current phase / task:** T12.1 Recipient Replies implemented & tested; awaiting Author physical actions (T11.6, T11.7)
-- **Last completed task:** T12.1 Recipient Replies (ADR-013 accepted, sealed replies schema, API, ReplyComposer, RepliesViewer)
-- **Next task:** Optional Phase 12 extensions (T12.2 DBSC, T12.3 E2EE, T12.4 HLS, T12.5 Map View) or Author launch actions
+- **Workflow stage:** Phase 12 Extensions (T12.1, T12.2, T12.3, T12.4 COMPLETE); core phases 0–11 COMPLETE
+- **Current phase / task:** T12.4 HLS Adaptive Bitrate Streaming implemented & verified; awaiting Author direction on T12.5 Map View or physical launch actions (T11.6, T11.7)
+- **Last completed task:** T12.4 HLS Adaptive Streaming (ADR-016 accepted, RFC 8216 playlist generator in worker, signed CloudFront URL resolution with 900s TTL, HLSPlayer adaptive HTML5 player component)
+- **Next task:** Optional Phase 12 extension (T12.5 Map View) or Author launch actions (T11.6, T11.7)
 - **Blockers:** none (code complete); two manual Author actions remain before go-live
 - **Open questions for the Author (must answer before listed phase):**
   - Domain name — needed before WebAuthn RP ID is set on real deploy (Phase 11 apply)
